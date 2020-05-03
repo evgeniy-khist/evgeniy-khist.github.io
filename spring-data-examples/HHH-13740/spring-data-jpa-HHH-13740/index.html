@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Problem with duplicates when fetching multiple many-to-many relations with Hibernate FetchMode.JOIN</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
+  <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+  <script async defer src="https://buttons.github.io/buttons.js"></script>
+  <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+    integrity="sha256-pasqAKBDmFT4eHoN2ndd6lN370kFiGUFyTiUHWhU7k8=" crossorigin="anonymous"></script>
+  <script>
+    $(document).ready(function () {
+      $(".navbar-burger").click(function () {
+        $(".navbar-burger").toggleClass("is-active");
+        $(".navbar-menu").toggleClass("is-active");
+      });
+    });
+  </script>
+</head>
+
+<body>
+  <nav class="navbar is-light" role="navigation" aria-label="main navigation">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://github.com/evgeniy-khist" target="_blank">
+        <span class="tag is-link is-medium">
+          <span class="icon">
+            <i class="fab fa-github"></i>
+          </span>
+          <span> evgeniy-khist</span>
+        </span>
+      </a>
+
+      <a role="button" class="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="navMenu">
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+      </a>
+    </div>
+
+    <div id="navMenu" class="navbar-menu">
+      <div class="navbar-start">
+        <a class="navbar-item" href="/">
+          Home
+        </a>
+
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link">
+            Projects
+          </a>
+
+          <div class="navbar-dropdown">
+              <a class="navbar-item" href="/spring-data-examples/">
+                Spring Data JPA pitfalls and modern alternatives: Spring Data JDBC and Spring Data R2DBC
+              </a>              <a class="navbar-item" href="/geohash-example/">
+                Rents Map - Geohash Example
+              </a>              <a class="navbar-item" href="/pairwise-comparison/">
+                Pairwise Comparison Method
+              </a>              <a class="navbar-item" href="/letsencrypt-docker-compose/">
+                Nginx and Let’s Encrypt with Docker Compose in less than 3 minutes
+              </a>          </div>
+        </div>
+      </div>
+
+      <div class="navbar-end">
+        <div class="navbar-item">
+          <a class="github-button" href="https://github.com/evgeniy-khist" data-size="large" data-show-count="true"
+            aria-label="Follow @evgeniy-khist on GitHub">Follow @evgeniy-khist</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero is-light">
+    <div class="hero-body">
+      <div class="container">
+        <h1 class="title">
+          Evgeniy Khyst's Tech Blog
+        </h1>
+        <h2 class="subtitle">
+          Samples and articles
+        </h2>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+<div class="columns">
+  <div class="column">
+    <a class="github-button" href="https://github.com/evgeniy-khist/spring-data-examples" data-icon="octicon-star"
+      data-size="large" data-show-count="true" aria-label="Star evgeniy-khist/spring-data-examples on GitHub">Star</a>
+    <a class="github-button" href="https://github.com/evgeniy-khist/spring-data-examples/fork" data-icon="octicon-repo-forked"
+      data-size="large" data-show-count="true" aria-label="Fork evgeniy-khist/spring-data-examples on GitHub">Fork</a>
+  </div>
+  <div class="column has-text-right has-text-grey">
+    <time datetime="2020-05-03">3 May 2020</time>
+  </div>
+</div>
+
+<div class="content">
+<h1 id="problemwithduplicateswhenfetchingmultiplemanytomanyrelationswithhibernatefetchmodejoin">Problem with duplicates when fetching multiple many-to-many relations with Hibernate FetchMode.JOIN</h1>
+<ul>
+<li>Java version - OpenJDK 11.0.6</li>
+<li>Spring Boot version - 2.2.6.RELEASE</li>
+<li>Spring Data JPA version - 2.2.6.RELEASE</li>
+<li>Hibernate version - 5.4.12.Final</li>
+</ul>
+<p>When there are multiple many-to-many relations with FetchMode.JOIN, 
+<code>JpaRepository#getOne(id)</code> returns a result with a child relation of type <code>List</code> containing duplicates.</p>
+<p>To avoid <code>MultipleBagFetchException: cannot simultaneously fetch multiple bags</code> when multiple <code>@ManyToMany</code> collections have <code>@Fetch(FetchMode.JOIN)</code>, 
+only one collection has type <code>List</code> and others have type <code>Set</code>.</p>
+<pre><code class="java language-java">@Entity
+@Data
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+public class Book implements Serializable {
+
+  @Id
+  @GeneratedValue
+  private Long id;
+
+  @NaturalId
+  @EqualsAndHashCode.Include
+  private String isbn;
+
+  private String title;
+
+  private LocalDate publicationDate;
+
+  @ManyToMany
+  @Fetch(FetchMode.JOIN)
+  private List&lt;Author&gt; authors = new ArrayList&lt;&gt;();
+
+  @ManyToMany
+  @Fetch(FetchMode.JOIN)
+  private Set&lt;Category&gt; categories = new LinkedHashSet&lt;&gt;();
+}
+</code></pre>
+<p>With the following test data</p>
+<pre><code class="java language-java">softwareDevelopment = new Category("Software development");
+categoryRepository.save(softwareDevelopment);
+
+systemDesign = new Category("System design");
+categoryRepository.save(systemDesign);
+
+martinFowler = new Author("Martin Fowler");
+authorRepository.save(martinFowler);
+
+gregorHohpe = new Author("Gregor Hohpe");
+authorRepository.save(gregorHohpe);
+
+bobbyWoolf = new Author("Bobby Woolf");
+authorRepository.save(bobbyWoolf);
+
+poeaa = new Book();
+poeaa.setIsbn("007-6092019909");
+poeaa.setTitle("Patterns of Enterprise Application Architecture");
+poeaa.setPublicationDate(LocalDate.parse("2002-11-15"));
+poeaa.getAuthors().addAll(List.of(martinFowler));
+poeaa.getCategories().addAll(List.of(softwareDevelopment, systemDesign));
+bookRepository.save(poeaa);
+
+eip = new Book();
+eip.setIsbn("978-0321200686");
+eip.setTitle("Enterprise Integration Patterns");
+eip.setPublicationDate(LocalDate.parse("2003-10-20"));
+eip.getAuthors().addAll(List.of(gregorHohpe, bobbyWoolf));
+eip.getCategories().addAll(List.of(softwareDevelopment, systemDesign));
+bookRepository.save(eip);
+</code></pre>
+<p>a <code>Book</code> entity found by ID contains duplicates in <code>List&lt;Author&gt; authors</code>
+because <code>Set&lt;Category&gt; categories</code> has size 2: <code>["Software development", "System design"]</code>.</p>
+<pre><code class="java language-java">@Transactional(readOnly = true)
+@Test
+void testFindByIdOneAuthor() {
+    Book poeaa = bookRepository.getOne(this.poeaa.getId());
+    assertThat(poeaa.getTitle()).isEqualTo(this.poeaa.getTitle());
+// The following line results in exception
+// because the actual poeaa.authors contains duplicates: ["Martin Fowler", "Martin Fowler"]
+    assertThatHasAuthors(poeaa, martinFowler.getFullName());
+}
+
+@Transactional(readOnly = true)
+@Test
+void testFindByIdTwoAuthors() {
+    Book eip = bookRepository.getOne(this.eip.getId());
+    assertThat(eip.getTitle()).isEqualTo(this.eip.getTitle());
+// The following line results in exception
+// because the actual eip.authors contains duplicates: ["Gregor Hohpe", "Gregor Hohpe", "Bobby Woolf", "Bobby Woolf"]
+    assertThatHasAuthors(eip, gregorHohpe.getFullName(), bobbyWoolf.getFullName());
+}
+</code></pre>
+<p>See the test <a href="src/test/java/com/example/spring/data/jpa/BookFetchModeJoinWithSetTests.java" rel="noopener noreferrer" target="_blank"><code>com.example.spring.data.jpa.BookFetchModeJoinWithSetTests</code></a>.</p>
+<p>There are no duplicates in <code>List&lt;Author&gt; authors</code> when <code>Set&lt;Category&gt; categories</code> has size 1.</p>
+</div>
+    </div>
+  </section>
+</body>
+
+</html>

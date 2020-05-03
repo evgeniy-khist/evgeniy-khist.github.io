@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pairwise Comparison Method</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
+  <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+  <script async defer src="https://buttons.github.io/buttons.js"></script>
+  <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+    integrity="sha256-pasqAKBDmFT4eHoN2ndd6lN370kFiGUFyTiUHWhU7k8=" crossorigin="anonymous"></script>
+  <script>
+    $(document).ready(function () {
+      $(".navbar-burger").click(function () {
+        $(".navbar-burger").toggleClass("is-active");
+        $(".navbar-menu").toggleClass("is-active");
+      });
+    });
+  </script>
+</head>
+
+<body>
+  <nav class="navbar is-light" role="navigation" aria-label="main navigation">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://github.com/evgeniy-khist" target="_blank">
+        <span class="tag is-link is-medium">
+          <span class="icon">
+            <i class="fab fa-github"></i>
+          </span>
+          <span> evgeniy-khist</span>
+        </span>
+      </a>
+
+      <a role="button" class="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="navMenu">
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+      </a>
+    </div>
+
+    <div id="navMenu" class="navbar-menu">
+      <div class="navbar-start">
+        <a class="navbar-item" href="/">
+          Home
+        </a>
+
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link">
+            Projects
+          </a>
+
+          <div class="navbar-dropdown">
+              <a class="navbar-item" href="/spring-data-examples/">
+                Spring Data JPA pitfalls and modern alternatives: Spring Data JDBC and Spring Data R2DBC
+              </a>              <a class="navbar-item" href="/geohash-example/">
+                Rents Map - Geohash Example
+              </a>              <a class="navbar-item" href="/pairwise-comparison/">
+                Pairwise Comparison Method
+              </a>              <a class="navbar-item" href="/letsencrypt-docker-compose/">
+                Nginx and Let’s Encrypt with Docker Compose in less than 3 minutes
+              </a>          </div>
+        </div>
+      </div>
+
+      <div class="navbar-end">
+        <div class="navbar-item">
+          <a class="github-button" href="https://github.com/evgeniy-khist" data-size="large" data-show-count="true"
+            aria-label="Follow @evgeniy-khist on GitHub">Follow @evgeniy-khist</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero is-light">
+    <div class="hero-body">
+      <div class="container">
+        <h1 class="title">
+          Evgeniy Khyst's Tech Blog
+        </h1>
+        <h2 class="subtitle">
+          Samples and articles
+        </h2>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+<div class="columns">
+  <div class="column">
+    <a class="github-button" href="https://github.com/evgeniy-khist/pairwise-comparison" data-icon="octicon-star"
+      data-size="large" data-show-count="true" aria-label="Star evgeniy-khist/pairwise-comparison on GitHub">Star</a>
+    <a class="github-button" href="https://github.com/evgeniy-khist/pairwise-comparison/fork" data-icon="octicon-repo-forked"
+      data-size="large" data-show-count="true" aria-label="Fork evgeniy-khist/pairwise-comparison on GitHub">Fork</a>
+  </div>
+  <div class="column has-text-right has-text-grey">
+    <time datetime="2020-01-27">27 Jan 2020</time>
+  </div>
+</div>
+
+<div class="content">
+<h1 id="pairwisecomparisonmethod">Pairwise Comparison Method</h1>
+<p>Pairwise comparison (or paired comparison) is a process of comparing entities in pairs to judge which of each entity is preferred.</p>
+<p>Sometimes it is hard to choose between multiple options.
+Comparing each option with others in pairs simplifies the choice and helps to identify the most preferred option.</p>
+<p>The pairwise comparison can be presented as a table.
+Options are compared at the intersection of rows and columns.
+If an option in a row is preferable to an option in a column, put <strong>1</strong> at the intersection and <strong>0</strong> otherwise.</p>
+<p>Only comparisons of pairs above the diagonal line of the table are needed.
+Values for pairs below the diagonal line can be calculated by simply inverting the corresponding values above the diagonal.</p>
+<p>Finally, sum all the values in the row to get a score of the option.</p>
+<p>Example 1:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><strong>A</strong></th>
+<th><strong>B</strong></th>
+<th><strong>C</strong></th>
+<th><strong>D</strong></th>
+<th><strong>Score</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>A</strong></td>
+<td>-</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td><strong>3</strong></td>
+</tr>
+<tr>
+<td><strong>B</strong></td>
+<td>0</td>
+<td>-</td>
+<td>1</td>
+<td>1</td>
+<td><strong>2</strong></td>
+</tr>
+<tr>
+<td><strong>C</strong></td>
+<td>0</td>
+<td>0</td>
+<td>-</td>
+<td>1</td>
+<td><strong>1</strong></td>
+</tr>
+<tr>
+<td><strong>D</strong></td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>-</td>
+<td><strong>0</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Example 2:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><strong>A</strong></th>
+<th><strong>B</strong></th>
+<th><strong>C</strong></th>
+<th><strong>D</strong></th>
+<th><strong>Score</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>A</strong></td>
+<td>-</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td><strong>2</strong></td>
+</tr>
+<tr>
+<td><strong>B</strong></td>
+<td>0</td>
+<td>-</td>
+<td>0</td>
+<td>1</td>
+<td><strong>1</strong></td>
+</tr>
+<tr>
+<td><strong>C</strong></td>
+<td>0</td>
+<td>1</td>
+<td>-</td>
+<td>1</td>
+<td><strong>2</strong></td>
+</tr>
+<tr>
+<td><strong>D</strong></td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>-</td>
+<td><strong>1</strong></td>
+</tr>
+</tbody>
+</table>
+<h2 id="pairwisecomparison">Pairwise comparison</h2>
+<p>The pairwise comparison method can be implemented as an interactive web application.</p>
+<p><a href="https://evgeniy-khist.github.io/pairwise-comparison/pairwise-comparison.html" rel="noopener noreferrer" target="_blank">https://evgeniy-khist.github.io/pairwise-comparison/pairwise-comparison.html</a></p>
+<p><img src="pairwise-comparison.gif" alt="Pairwise comparison demo" /></p>
+<h2 id="imagepairwisecomparison">Image pairwise comparison</h2>
+<p>The pairwise comparison method can also be used for choosing the best image or photo.</p>
+<p><a href="https://evgeniy-khist.github.io/pairwise-comparison/image-pairwise-comparison.html" rel="noopener noreferrer" target="_blank">https://evgeniy-khist.github.io/pairwise-comparison/image-pairwise-comparison.html</a></p>
+<p><img src="image-pairwise-comparison.gif" alt="Image pairwise comparison" /></p>
+<h2 id="solutioncomparison">Solution comparison</h2>
+<p>When it comes to important decisions, it's better not to compare solutions directly.
+Instead, prepare a set of requirements that the solution should satisfy, 
+prioritize the requirements using pairwise comparison method, 
+and choose the solution that best meets the requirements.</p>
+<p><a href="https://evgeniy-khist.github.io/pairwise-comparison/solution-comparison.html" rel="noopener noreferrer" target="_blank">https://evgeniy-khist.github.io/pairwise-comparison/solution-comparison.html</a></p>
+<p><img src="solution-comparison.gif" alt="Solution comparison" /></p>
+</div>
+    </div>
+  </section>
+</body>
+
+</html>

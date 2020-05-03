@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nginx and Let’s Encrypt with Docker Compose in less than 3 minutes</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
+  <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+  <script async defer src="https://buttons.github.io/buttons.js"></script>
+  <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+    integrity="sha256-pasqAKBDmFT4eHoN2ndd6lN370kFiGUFyTiUHWhU7k8=" crossorigin="anonymous"></script>
+  <script>
+    $(document).ready(function () {
+      $(".navbar-burger").click(function () {
+        $(".navbar-burger").toggleClass("is-active");
+        $(".navbar-menu").toggleClass("is-active");
+      });
+    });
+  </script>
+</head>
+
+<body>
+  <nav class="navbar is-light" role="navigation" aria-label="main navigation">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://github.com/evgeniy-khist" target="_blank">
+        <span class="tag is-link is-medium">
+          <span class="icon">
+            <i class="fab fa-github"></i>
+          </span>
+          <span> evgeniy-khist</span>
+        </span>
+      </a>
+
+      <a role="button" class="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="navMenu">
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+      </a>
+    </div>
+
+    <div id="navMenu" class="navbar-menu">
+      <div class="navbar-start">
+        <a class="navbar-item" href="/">
+          Home
+        </a>
+
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link">
+            Projects
+          </a>
+
+          <div class="navbar-dropdown">
+              <a class="navbar-item" href="/spring-data-examples/">
+                Spring Data JPA pitfalls and modern alternatives: Spring Data JDBC and Spring Data R2DBC
+              </a>              <a class="navbar-item" href="/geohash-example/">
+                Rents Map - Geohash Example
+              </a>              <a class="navbar-item" href="/pairwise-comparison/">
+                Pairwise Comparison Method
+              </a>              <a class="navbar-item" href="/letsencrypt-docker-compose/">
+                Nginx and Let’s Encrypt with Docker Compose in less than 3 minutes
+              </a>          </div>
+        </div>
+      </div>
+
+      <div class="navbar-end">
+        <div class="navbar-item">
+          <a class="github-button" href="https://github.com/evgeniy-khist" data-size="large" data-show-count="true"
+            aria-label="Follow @evgeniy-khist on GitHub">Follow @evgeniy-khist</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero is-light">
+    <div class="hero-body">
+      <div class="container">
+        <h1 class="title">
+          Evgeniy Khyst's Tech Blog
+        </h1>
+        <h2 class="subtitle">
+          Samples and articles
+        </h2>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+<div class="columns">
+  <div class="column">
+    <a class="github-button" href="https://github.com/evgeniy-khist/letsencrypt-docker-compose" data-icon="octicon-star"
+      data-size="large" data-show-count="true" aria-label="Star evgeniy-khist/letsencrypt-docker-compose on GitHub">Star</a>
+    <a class="github-button" href="https://github.com/evgeniy-khist/letsencrypt-docker-compose/fork" data-icon="octicon-repo-forked"
+      data-size="large" data-show-count="true" aria-label="Fork evgeniy-khist/letsencrypt-docker-compose on GitHub">Fork</a>
+  </div>
+  <div class="column has-text-right has-text-grey">
+    <time datetime="2020-04-08">8 Apr 2020</time>
+  </div>
+</div>
+
+<div class="content">
+<h1 id="nginxandletsencryptwithdockercomposeinlessthan3minutes">Nginx and Let’s Encrypt with Docker Compose in less than 3 minutes</h1>
+<p>This example automatically obtains and renews <a href="https://letsencrypt.org/" rel="noopener noreferrer" target="_blank">Let's Encrypt</a> TLS certificates and set up HTTPS in Nginx for multiple domain names using Docker Compose.</p>
+<p>You can set up HTTPS in Nginx with Let's Encrypt TLS certificates for your domain names and get A+ rating at <a href="https://www.ssllabs.com/ssltest/" rel="noopener noreferrer" target="_blank">SSL Labs SSL Server Test</a> by changing a few configuration parameters of this example.</p>
+<p>Let's Encrypt is a certificate authority that provides free X.509 certificates for TLS encryption.
+The certificates are valid for 90 days and can be renewed. Both initial creation and renewal can be automated using <a href="https://certbot.eff.org/" rel="noopener noreferrer" target="_blank">Certbot</a>.</p>
+<p>When using Kubernetes Let's Encrypt TLS certificates can be easily obtained and installed using <a href="https://cert-manager.io/" rel="noopener noreferrer" target="_blank">Cert Manager</a>.
+For simple web sites and applications Kubernetes is too much overhead and Docker Compose is more suitable.
+But for Docker Compose there is no such popular and robust tool for TLS certificate management.</p>
+<p>The example supports separate TLS certificates for multiple domain names, e.g. example.com, anotherdomain.net etc.
+For simplicity this example deals with the following domain names:</p>
+<ul>
+<li>test1.devcomanda.com</li>
+<li>test2.devcomanda.com</li>
+</ul>
+<p>The idea is simple. There are 3 containers: </p>
+<ul>
+<li>Nginx</li>
+<li>Certbot - for obtaining and renewing certificates</li>
+<li>Cron - for triggering certificates renewal once a day</li>
+</ul>
+<p>The sequence of actions:</p>
+<ul>
+<li>Nginx generates self-signed "dummy" certificates to pass ACME challenge for obtaining Let's Encrypt certificates</li>
+<li>Certbot waits for Nginx to become ready and obtains certificates</li>
+<li>Cron triggers Certbot to try to renew certificates and Nginx to reload configuration on a daily basis</li>
+</ul>
+<p>There the following files:</p>
+<ul>
+<li><code>docker-compose.yml</code></li>
+<li><code>.env</code> - specifies <code>COMPOSE_PROJECT_NAME</code> to make container names independent from the base directory name</li>
+<li><code>config.env</code> - specifies project configuration, e.g. domain names, emails etc.</li>
+<li><code>html/</code> - directory mounted as <code>root</code> for Nginx<ul>
+<li><code>index.html</code></li></ul></li>
+<li><code>nginx/</code><ul>
+<li><code>Dockerfile</code></li>
+<li><code>nginx.sh</code> - entrypoint script</li>
+<li><code>hsts.conf</code> - HTTP Strict Transport Security (HSTS) policy</li>
+<li><code>default.conf</code> - Nginx configuration for all domains. Contains a configuration to get A+ rating at <a href="https://www.ssllabs.com/ssltest/" rel="noopener noreferrer" target="_blank">SSL Server Test</a></li></ul></li>
+<li><code>certbot/</code><ul>
+<li><code>Dockerfile</code></li>
+<li><code>certbot.sh</code> - entrypoint script</li></ul></li>
+<li><code>cron/</code><ul>
+<li><code>Dockerfile</code></li>
+<li><code>renew_certs.sh</code> - script executed on a daily basis to try to renew certificates</li></ul></li>
+</ul>
+<p>To adapt the example to your domain names you need to change only <code>config.env</code>:</p>
+<pre><code class="properties language-properties">DOMAINS=test1.devcomanda.com test2.devcomanda.com
+CERTBOT_EMAILS=info@devcomanda.com info@devcomanda.com
+CERTBOT_TEST_CERT=1
+CERTBOT_RSA_KEY_SIZE=4096
+</code></pre>
+<p>Configuration parameters:</p>
+<ul>
+<li><code>DOMAINS</code> - a space separated list of domains to manage certificates for</li>
+<li><code>CERTBOT_EMAILS</code> - a space separated list of email for corresponding domains. If not specified, certificates will be obtained with <code>--register-unsafely-without-email</code></li>
+<li><code>CERTBOT_TEST_CERT</code> - use Let's Encrypt staging server (<code>--test-cert</code>)</li>
+</ul>
+<p>Let's Encrypt has rate limits. So, while testing it's better to use staging server by setting <code>CERTBOT_TEST_CERT=1</code> (default value).
+When you are ready to use production Let's Encrypt server, set <code>CERTBOT_TEST_CERT=0</code>.</p>
+<h2 id="prerequisites">Prerequisites</h2>
+<ol>
+<li><a href="https://docs.docker.com/install/" rel="noopener noreferrer" target="_blank">Docker</a> and <a href="https://docs.docker.com/compose/install/" rel="noopener noreferrer" target="_blank">Docker Compose</a> are installed</li>
+<li>You have a domain name</li>
+<li>You have a server with a publicly routable IP address</li>
+<li>You have cloned this repository</li>
+</ol>
+<pre><code class="bash language-bash">   git clone https://github.com/evgeniy-khist/letsencrypt-docker-compose.git
+</code></pre>
+<h2 id="step0pointyourdomaintoserverwithdnsarecords">Step 0 - Point your domain to server with DNS A records</h2>
+<p>For all domain names configure DNS A records to point to a server where Docker containers will be running.</p>
+<h2 id="step1editdomainnamesandemailsintheconfiguration">Step 1 - Edit domain names and emails in the configuration</h2>
+<p>Specify you domain names and contact emails for these domains in the <code>config.env</code>:</p>
+<pre><code class="properties language-properties">DOMAINS=test1.devcomanda.com test2.devcomanda.com
+CERTBOT_EMAILS=info@devcomanda.com info@devcomanda.com
+</code></pre>
+<h2 id="step2createnameddockervolumesfordummyandletsencrypttlscertificates">Step 2 - Create named Docker volumes for dummy and Let's Encrypt TLS certificates</h2>
+<pre><code class="bash language-bash">docker volume create --name=devcomanda_nginx_ssl
+docker volume create --name=devcomanda_certbot_certs
+</code></pre>
+<h2 id="step3buildimagesandstartcontainers">Step 3 - Build images and start containers</h2>
+<pre><code class="bash language-bash">docker-compose up --build
+</code></pre>
+<h2 id="step4switchtoproductionletsencryptserverafterverifyinghttpsworkswithtestcertificates">Step 4 - Switch to production Let's Encrypt server after verifying HTTPS works with test certificates</h2>
+<p>Stop comtainers:</p>
+<pre><code class="bash language-bash">docker-compose down
+</code></pre>
+<p>Configure to use production Let's Encrypt server in <code>config.env</code>:</p>
+<pre><code class="properties language-properties">CERTBOT_TEST_CERT=0
+</code></pre>
+<p>Re-create the volume for Let's Encrypt certificates:</p>
+<pre><code class="bash language-bash">docker volume rm devcomanda_certbot_certs
+docker volume create --name=devcomanda_certbot_certs
+</code></pre>
+<p>Start containers:</p>
+<pre><code class="bash language-bash">docker-compose up
+</code></pre>
+</div>
+    </div>
+  </section>
+</body>
+
+</html>

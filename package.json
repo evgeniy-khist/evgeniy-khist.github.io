@@ -1,0 +1,23 @@
+{
+  "name": "evgeniy-khist.github.io",
+  "version": "1.0.0",
+  "description": "Node.js scripts to build GitHub Pages web site",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/evgeniy-khist/evgeniy-khist.github.io.git"
+  },
+  "author": "Evgeniy Khyst",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/evgeniy-khist/evgeniy-khist.github.io/issues"
+  },
+  "homepage": "https://github.com/evgeniy-khist/evgeniy-khist.github.io",
+  "devDependencies": {
+    "axios": "^0.19.2",
+    "camelcase": "^6.0.0",
+    "glob": "^7.1.6",
+    "handlebars": "^4.7.6",
+    "moment": "^2.24.0",
+    "showdown": "^1.9.1"
+  }
+}
