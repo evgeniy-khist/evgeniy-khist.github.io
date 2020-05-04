@@ -5,11 +5,15 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Spring Data JPA pitfalls and modern alternatives: Spring Data JDBC and Spring Data R2DBC</title>
+
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.20.0/themes/prism.min.css" integrity="sha256-cuvic28gVvjQIo3Q4hnRpQSNB0aMw3C+kjkR0i+hrWg=" crossorigin="anonymous" />
+
   <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
   <script async defer src="https://buttons.github.io/buttons.js"></script>
   <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
     integrity="sha256-pasqAKBDmFT4eHoN2ndd6lN370kFiGUFyTiUHWhU7k8=" crossorigin="anonymous"></script>
+    
   <script>
     $(document).ready(function () {
       $(".navbar-burger").click(function () {
@@ -95,7 +99,7 @@
       data-size="large" data-show-count="true" aria-label="Fork evgeniy-khist/spring-data-examples on GitHub">Fork</a>
   </div>
   <div class="column has-text-right has-text-grey">
-    <time datetime="2020-05-03">3 May 2020</time>
+    <time datetime="2020-05-04">4 May 2020</time>
   </div>
 </div>
 
@@ -109,11 +113,10 @@
 <li><a href="#86e43ec88f085c89356cfb650c7d5ce7">Spring Data JDBC</a></li>
 <li><a href="#afa7b6461a2e3f16a1895d95522f3f29">Spring Data R2DBC</a></li>
 <li><a href="#6f8b794f3246b0c1e1780bb4d4d5dc53">Conclusion</a></li>
-<li><a href="#ff7c0fcd6a31e735a61c001f75426961">Examples</a></li>
-<li><a href="#e930cfb2216d9b0871311eeabd12ef12">Spring Data JPA example</a><ul>
+<li><a href="#e930cfb2216d9b0871311eeabd12ef12">Spring Data JPA example</a></li>
 <li><a href="#ca1ea02c10b7c37f425b9b7dd86d5e11">Test data</a></li>
-<li><a href="#75e0f07fedd63771fc35ec852a9c937f">Fetching strategies</a></li>
-<li><a href="#7ea24578e6c11808b7b2880dd98bc573">Entity without explicit <code>@Fetch</code></a><ul>
+<li><a href="#75e0f07fedd63771fc35ec852a9c937f">Fetching strategies</a><ul>
+<li><a href="#7ea24578e6c11808b7b2880dd98bc573">Entity without explicit <code>@Fetch</code></a></li>
 <li><a href="#4a2070d3aad7ff832b5e36f76cc6f731"><code>CrudRepository.findById</code></a></li>
 <li><a href="#ecfc45d33505baec3249b78ec3e66059">Query method</a></li>
 <li><a href="#957184c667a66fa2409d3c81d58e0f90">Query method with <code>@EntityGraph</code></a></li>
@@ -123,41 +126,42 @@
 <li><a href="#ff9705f518ec48b7fa77d2d6cd0c3c14"><code>@Query</code> with JPQL <code>join fetch</code> and <code>distinct</code></a></li>
 <li><a href="#e11be536b6f6d686f69f20513138cae0">Custom <code>@Repository</code> with Criteria API query</a></li>
 <li><a href="#1323d64c9e1914e06c3b257f7cea728c">Custom <code>@Repository</code> with Criteria API query with <code>fetch</code></a></li>
-<li><a href="#7285e9899741d937830c2225ff8d01bc">Custom <code>@Repository</code> with Criteria API query with <code>fetch</code> and <code>distinct</code></a></li></ul></li>
-<li><a href="#239f2f55854878f99d5d4d379a765d39">Entity with <code>@Fetch(JOIN)</code></a><ul>
+<li><a href="#7285e9899741d937830c2225ff8d01bc">Custom <code>@Repository</code> with Criteria API query with <code>fetch</code> and <code>distinct</code></a></li>
+<li><a href="#239f2f55854878f99d5d4d379a765d39">Entity with <code>@Fetch(JOIN)</code></a></li>
 <li><a href="#4a2070d3aad7ff832b5e36f76cc6f731"><code>CrudRepository.findById</code></a></li>
-<li><a href="#ecfc45d33505baec3249b78ec3e66059">Query method</a></li></ul></li>
-<li><a href="#61d561e02c4002d6d6ad4646e5d328f7">Entity with <code>@Fetch(SELECT)</code></a><ul>
+<li><a href="#ecfc45d33505baec3249b78ec3e66059">Query method</a></li>
+<li><a href="#61d561e02c4002d6d6ad4646e5d328f7">Entity with <code>@Fetch(SELECT)</code></a></li>
 <li><a href="#4a2070d3aad7ff832b5e36f76cc6f731"><code>CrudRepository.findById</code></a></li>
-<li><a href="#ecfc45d33505baec3249b78ec3e66059">Query method</a></li></ul></li>
-<li><a href="#76b5b36ea931f6c209971594a5473ffa">Entity with <code>@Fetch(SUBSELECT)</code></a><ul>
+<li><a href="#ecfc45d33505baec3249b78ec3e66059">Query method</a></li>
+<li><a href="#76b5b36ea931f6c209971594a5473ffa">Entity with <code>@Fetch(SUBSELECT)</code></a></li>
 <li><a href="#4a2070d3aad7ff832b5e36f76cc6f731"><code>CrudRepository.findById</code></a></li>
-<li><a href="#ecfc45d33505baec3249b78ec3e66059">Query method</a></li></ul></li>
-<li><a href="#b77feec501b1fe41ebee44d25e206880">Entity with <code>@BatchSize</code></a><ul>
+<li><a href="#ecfc45d33505baec3249b78ec3e66059">Query method</a></li>
+<li><a href="#b77feec501b1fe41ebee44d25e206880">Entity with <code>@BatchSize</code></a></li>
 <li><a href="#4a2070d3aad7ff832b5e36f76cc6f731"><code>CrudRepository.findById</code></a></li>
-<li><a href="#ecfc45d33505baec3249b78ec3e66059">Query method</a></li></ul></li>
-<li><a href="#1049387d75c060dc77f67c5477fb48d4">Entity with multiple bags resulting in <code>MultipleBagFetchException</code></a></li>
-<li><a href="#9a3347442ef97064c198bda69c16f816">Locking strategies</a></li>
+<li><a href="#ecfc45d33505baec3249b78ec3e66059">Query method</a></li>
+<li><a href="#1049387d75c060dc77f67c5477fb48d4">Entity with multiple bags resulting in <code>MultipleBagFetchException</code></a></li></ul></li>
+<li><a href="#9a3347442ef97064c198bda69c16f816">Locking strategies</a><ul>
 <li><a href="#272ede57357a5f214f2904c15e3fe103">Implicit optimistic lock of entity with <code>@Version</code> on modification</a></li>
 <li><a href="#502c2256dbc0a223143500d9f9b3b5cc">Explicit optimistic lock <code>@Lock(OPTIMISTIC)</code></a></li>
 <li><a href="#6efaef54090120ae008692898745a547">Explicit optimistic lock <code>@Lock(OPTIMISTIC_FORCE_INCREMENT)</code></a></li>
 <li><a href="#c2b4e4a7c69f6c6b216e05a547731c57">Explicit pessimistic write lock <code>@Lock(PESSIMISTIC_WRITE)</code></a></li>
-<li><a href="#657a4b524b13a122706ee27f7675bcf7">Explicit pessimistic read lock <code>@Lock(PESSIMISTIC_READ)</code></a></li>
-<li><a href="#532d5a8c2809912b992aa517d1e46ced">Mapping from entity to DTO using MapStruct</a></li></ul></li>
-<li><a href="#1ef62fd469285970a640c75be1cbdb9a">Spring Data JDBC example</a><ul>
+<li><a href="#657a4b524b13a122706ee27f7675bcf7">Explicit pessimistic read lock <code>@Lock(PESSIMISTIC_READ)</code></a></li></ul></li>
+<li><a href="#532d5a8c2809912b992aa517d1e46ced">Mapping from entity to DTO using MapStruct</a></li>
+<li><a href="#1ef62fd469285970a640c75be1cbdb9a">Spring Data JDBC example</a></li>
 <li><a href="#ca1ea02c10b7c37f425b9b7dd86d5e11">Test data</a></li>
-<li><a href="#cf43137803fb51915f84cbc5c3068d34">Queries</a></li>
+<li><a href="#cf43137803fb51915f84cbc5c3068d34">Queries</a><ul>
 <li><a href="#07109b7f3df585c23975718b13843dac"><code>CrudRepository.save</code></a></li>
 <li><a href="#4a2070d3aad7ff832b5e36f76cc6f731"><code>CrudRepository.findById</code></a></li>
 <li><a href="#f34c8b22bd6fb5a16c60b7ecd412d675"><code>PagingAndSortingRepository.findAll(Pageable)</code></a></li>
+<li><a href="#fe9f09d7c10598e080ef1ac1502711df"><code>@Query</code> with SQL</a></li>
 <li><a href="#ce75f4a17b574599267b2a18924cb931"><code>@Query</code> with SQL join</a></li>
-<li><a href="#59581bf130250c31253eac07da3d2c56"><code>@Query</code> with SQL and pagination</a></li>
-<li><a href="#9a3347442ef97064c198bda69c16f816">Locking strategies</a></li>
-<li><a href="#272ede57357a5f214f2904c15e3fe103">Implicit optimistic lock of entity with <code>@Version</code> on modification</a></li>
+<li><a href="#59581bf130250c31253eac07da3d2c56"><code>@Query</code> with SQL and pagination</a></li></ul></li>
+<li><a href="#9a3347442ef97064c198bda69c16f816">Locking strategies</a><ul>
+<li><a href="#272ede57357a5f214f2904c15e3fe103">Implicit optimistic lock of entity with <code>@Version</code> on modification</a></li></ul></li>
 <li><a href="#532d5a8c2809912b992aa517d1e46ced">Mapping from entity to DTO using MapStruct</a></li>
-<li><a href="#fc1290b67d538903eba761ca9f952dc9">Reactive <code>Mono.fromCallable</code> wrapping synchronous call</a></li></ul></li>
-<li><a href="#1418b03e9a73d96a8c697855b6c0401e">Spring Data R2DBC example</a><ul>
-<li><a href="#cf43137803fb51915f84cbc5c3068d34">Queries</a></li>
+<li><a href="#fc1290b67d538903eba761ca9f952dc9">Reactive <code>Mono.fromCallable</code> wrapping synchronous call</a></li>
+<li><a href="#1418b03e9a73d96a8c697855b6c0401e">Spring Data R2DBC example</a></li>
+<li><a href="#cf43137803fb51915f84cbc5c3068d34">Queries</a><ul>
 <li><a href="#4a2070d3aad7ff832b5e36f76cc6f731"><code>CrudRepository.findById</code></a></li>
 <li><a href="#74790cb9ca9d56e09b465befb7c7603b">Query method with <code>Sort</code></a></li>
 <li><a href="#59581bf130250c31253eac07da3d2c56"><code>@Query</code> with SQL and pagination</a></li>
@@ -458,8 +462,7 @@ Spring Data JDBC is a good choice for a simple applications with a simple domain
 <p>Spring Data R2DBC is in active development and misses a lot of features but looks very promising.
 The idea to have an entirely reactive Java application based on non-blocking I/O from the database to REST API, is very interesting.</p>
 <p>So, in Spring Data family there is no production-ready alternative to Spring Data JPA for enterprise applications nowadays.</p>
-<h2 id="anameff7c0fcd6a31e735a61c001f75426961aexamples"><a name="ff7c0fcd6a31e735a61c001f75426961"></a>Examples</h2>
-<h3 id="anamee930cfb2216d9b0871311eeabd12ef12aspringdatajpaexample"><a name="e930cfb2216d9b0871311eeabd12ef12"></a>Spring Data JPA example</h3>
+<h2 id="anamee930cfb2216d9b0871311eeabd12ef12aspringdatajpaexample"><a name="e930cfb2216d9b0871311eeabd12ef12"></a>Spring Data JPA example</h2>
 <p><a href="spring-data-jpa-examples/" rel="noopener noreferrer" target="_blank">spring-data-jpa-examples</a> has a simple domain model. 
 A book has at least one author and belongs to at least one category.
 A book can be rated. An average rating and a total number of ratings are tracked.</p>
@@ -486,7 +489,7 @@ the hierarchy of book classes used:</p>
 <p>The example uses <a href="https://www.testcontainers.org/" rel="noopener noreferrer" target="_blank">Testcontainers</a> library that manages Docker containers in JUnit tests.
 This library starts a PostgreSQL Docker container for integration tests.
 Using the same database in production and integration tests is a big advantage compared to using in-memory databases like H2 or HSQLDB.</p>
-<h4 id="anameca1ea02c10b7c37f425b9b7dd86d5e11atestdata"><a name="ca1ea02c10b7c37f425b9b7dd86d5e11"></a>Test data</h4>
+<h3 id="anameca1ea02c10b7c37f425b9b7dd86d5e11atestdata"><a name="ca1ea02c10b7c37f425b9b7dd86d5e11"></a>Test data</h3>
 <p><code>com.example.spring.data.jpa.AbstractBookRepositoryBaseTest</code></p>
 <pre><code class="java language-java">void saveCategories() {
   softwareDevelopment = new Category("Software development");
@@ -549,8 +552,8 @@ rating.setRating(new BigDecimal("4.4"));
 rating.setNumberOfRatings(240);
 bookRatingRepository.save(rating);
 </code></pre>
-<h4 id="aname75e0f07fedd63771fc35ec852a9c937fafetchingstrategies-1"><a name="75e0f07fedd63771fc35ec852a9c937f"></a>Fetching strategies</h4>
-<h5 id="aname7ea24578e6c11808b7b2880dd98bc573aentitywithoutexplicitfetch"><a name="7ea24578e6c11808b7b2880dd98bc573"></a>Entity without explicit <code>@Fetch</code></h5>
+<h3 id="aname75e0f07fedd63771fc35ec852a9c937fafetchingstrategies-1"><a name="75e0f07fedd63771fc35ec852a9c937f"></a>Fetching strategies</h3>
+<h4 id="aname7ea24578e6c11808b7b2880dd98bc573aentitywithoutexplicitfetch"><a name="7ea24578e6c11808b7b2880dd98bc573"></a>Entity without explicit <code>@Fetch</code></h4>
 <p><code>com.example.spring.data.jpa.entity.Book</code></p>
 <pre><code class="java language-java">@Entity
 @Data
@@ -565,7 +568,7 @@ public class Book extends AbstractBook {
   private Set&lt;Category&gt; categories = new LinkedHashSet&lt;&gt;();
 }
 </code></pre>
-<h6 id="aname4a2070d3aad7ff832b5e36f76cc6f731acrudrepositoryfindbyid"><a name="4a2070d3aad7ff832b5e36f76cc6f731"></a><code>CrudRepository.findById</code></h6>
+<h5 id="aname4a2070d3aad7ff832b5e36f76cc6f731acrudrepositoryfindbyid"><a name="4a2070d3aad7ff832b5e36f76cc6f731"></a><code>CrudRepository.findById</code></h5>
 <p><code>com.example.spring.data.jpa.BookRepositoryTest</code> extends <code>com.example.spring.data.jpa.AbstractBookRepositoryBaseTest</code></p>
 <pre><code class="java language-java">@Test
 void findById() {
@@ -600,7 +603,7 @@ FROM   book_categories categories0_
                ON categories0_.categories_id = category1_.id
 WHERE  categories0_.book_id = ? /*57*/
 </code></pre>
-<h6 id="anameecfc45d33505baec3249b78ec3e66059aquerymethod"><a name="ecfc45d33505baec3249b78ec3e66059"></a>Query method</h6>
+<h5 id="anameecfc45d33505baec3249b78ec3e66059aquerymethod"><a name="ecfc45d33505baec3249b78ec3e66059"></a>Query method</h5>
 <p><code>com.example.spring.data.jpa.repository.BookRepository</code> extends <code>com.example.spring.data.jpa.repository.AbstractBookRepository</code></p>
 <pre><code class="java language-java">List&lt;T&gt; findByTitleContains(String title, Pageable pageable);
 </code></pre>
@@ -666,7 +669,7 @@ FROM   book_categories categories0_
                ON categories0_.categories_id = category1_.id
 WHERE  categories0_.book_id = ? /*57*/
 </code></pre>
-<h6 id="aname957184c667a66fa2409d3c81d58e0f90aquerymethodwithentitygraph"><a name="957184c667a66fa2409d3c81d58e0f90"></a>Query method with <code>@EntityGraph</code></h6>
+<h5 id="aname957184c667a66fa2409d3c81d58e0f90aquerymethodwithentitygraph"><a name="957184c667a66fa2409d3c81d58e0f90"></a>Query method with <code>@EntityGraph</code></h5>
 <p>JPA 2.1 has introduced the Entity Graph feature as dynamic alternative to <code>FetchType.LAZY</code> and <code>FetchType.EAGER</code> that are static and can't be changed at runtime.
 Entity Graph allows to specify what associations and basic fields have to loaded.
 As mentioned above, <code>FetchType.EAGER</code> applied to child collections is ignored by JPQL queries.
@@ -731,7 +734,7 @@ FROM   book_categories categories0_
                ON categories0_.categories_id = category1_.id
 WHERE  categories0_.book_id = ? /*58*/
 </code></pre>
-<h6 id="anamece895104ae9e9dd02aafbba89a339104aquerymethodwithentitygraphandpageable"><a name="ce895104ae9e9dd02aafbba89a339104"></a>Query method with <code>@EntityGraph</code> and <code>Pageable</code></h6>
+<h5 id="anamece895104ae9e9dd02aafbba89a339104aquerymethodwithentitygraphandpageable"><a name="ce895104ae9e9dd02aafbba89a339104"></a>Query method with <code>@EntityGraph</code> and <code>Pageable</code></h5>
 <p>Usage of <code>@EntityGraph</code> with <code>Pageable</code> results in warning
 <code>HHH000104: firstResult/maxResults specified with collection fetch; applying in memory!</code>.
 The whole table is loaded into memory and then filtered.</p>
@@ -777,7 +780,7 @@ FROM   book_categories categories0_
                ON categories0_.categories_id = category1_.id
 WHERE  categories0_.book_id = ? /*57*/
 </code></pre>
-<h6 id="aname260b142dfcc1f303ff3e67de6da4d730aquerymethodwithentitygraphwithmultipleattributenodesissuehhh13740"><a name="260b142dfcc1f303ff3e67de6da4d730"></a>Query method with <code>@EntityGraph</code> with multiple attribute nodes (issue HHH-13740)</h6>
+<h5 id="aname260b142dfcc1f303ff3e67de6da4d730aquerymethodwithentitygraphwithmultipleattributenodesissuehhh13740"><a name="260b142dfcc1f303ff3e67de6da4d730"></a>Query method with <code>@EntityGraph</code> with multiple attribute nodes (issue HHH-13740)</h5>
 <p>When <code>@EntityGraph</code> has multiple attribute nodes and so defines multiple child collection to be eagerly fetched 
 we face with issue <a href="https://hibernate.atlassian.net/browse/HHH-13740" rel="noopener noreferrer" target="_blank">HHH-13740</a> related to duplicates in the child collections.</p>
 <p>Find out more details about HHH-13740 in the separate <a href="HHH-13740/" rel="noopener noreferrer" target="_blank">examples</a>.</p>
@@ -836,7 +839,7 @@ FROM   book book0_
 WHERE  book0_.publication_date BETWEEN ? AND ? /*2000-01-01,2020-01-01*/
 ORDER  BY book0_.publication_date ASC
 </code></pre>
-<h6 id="aname99fac513c058317164ad5a6e20d34f18aquerywithjpqljoinfetch"><a name="99fac513c058317164ad5a6e20d34f18"></a><code>@Query</code> with JPQL <code>join fetch</code></h6>
+<h5 id="aname99fac513c058317164ad5a6e20d34f18aquerywithjpqljoinfetch"><a name="99fac513c058317164ad5a6e20d34f18"></a><code>@Query</code> with JPQL <code>join fetch</code></h5>
 <p>One more way to fetch related association using SQL join is to use custom JPQL query with <code>join fetch</code>.
 The result set in such a case will contain duplicates if the child collection size is greater than 1 (&gt;=2).
 In this example duplicates are caused by join of the book with multiple authors.</p>
@@ -896,7 +899,7 @@ FROM   book_categories categories0_
                ON categories0_.categories_id = category1_.id
 WHERE  categories0_.book_id = ? /*58*/
 </code></pre>
-<h6 id="anameff9705f518ec48b7fa77d2d6cd0c3c14aquerywithjpqljoinfetchanddistinct"><a name="ff9705f518ec48b7fa77d2d6cd0c3c14"></a><code>@Query</code> with JPQL <code>join fetch</code> and <code>distinct</code></h6>
+<h5 id="anameff9705f518ec48b7fa77d2d6cd0c3c14aquerywithjpqljoinfetchanddistinct"><a name="ff9705f518ec48b7fa77d2d6cd0c3c14"></a><code>@Query</code> with JPQL <code>join fetch</code> and <code>distinct</code></h5>
 <p>A workaround to the issue with duplicates due to using JQPL <code>join fetch</code> is to use <code>distinct</code> operator. </p>
 <p><code>com.example.spring.data.jpa.repository.BookRepository</code></p>
 <pre><code class="java language-java">@Query("select distinct b from Book b join fetch b.authors"
@@ -953,7 +956,7 @@ FROM   book_categories categories0_
                ON categories0_.categories_id = category1_.id
 WHERE  categories0_.book_id = ? /*58*/
 </code></pre>
-<h6 id="anamee11be536b6f6d686f69f20513138cae0acustomrepositorywithcriteriaapiquery"><a name="e11be536b6f6d686f69f20513138cae0"></a>Custom <code>@Repository</code> with Criteria API query</h6>
+<h5 id="anamee11be536b6f6d686f69f20513138cae0acustomrepositorywithcriteriaapiquery"><a name="e11be536b6f6d686f69f20513138cae0"></a>Custom <code>@Repository</code> with Criteria API query</h5>
 <p>Spring Data JPA also supports Criteria API queries.
 Create an extension interface with a method for a custom query you want to implement using Criteria API.
 Extend your repository interface from this extension interface.
@@ -1083,7 +1086,7 @@ FROM   book_categories categories0_
                ON categories0_.categories_id = category1_.id
 WHERE  categories0_.book_id = ? /*58*/
 </code></pre>
-<h6 id="aname1323d64c9e1914e06c3b257f7cea728cacustomrepositorywithcriteriaapiquerywithfetch"><a name="1323d64c9e1914e06c3b257f7cea728c"></a>Custom <code>@Repository</code> with Criteria API query with <code>fetch</code></h6>
+<h5 id="aname1323d64c9e1914e06c3b257f7cea728cacustomrepositorywithcriteriaapiquerywithfetch"><a name="1323d64c9e1914e06c3b257f7cea728c"></a>Custom <code>@Repository</code> with Criteria API query with <code>fetch</code></h5>
 <p>To eagerly load a related association in Criteria API, use <code>fetch</code> method.</p>
 <pre><code class="java language-java">CriteriaBuilder cb = em.getCriteriaBuilder();
 CriteriaQuery&lt;Book&gt; cq = cb.createQuery(Book.class);
@@ -1139,7 +1142,7 @@ FROM   book_categories categories0_
                ON categories0_.categories_id = category1_.id
 WHERE  categories0_.book_id = ? /*58*/
 </code></pre>
-<h6 id="aname7285e9899741d937830c2225ff8d01bcacustomrepositorywithcriteriaapiquerywithfetchanddistinct"><a name="7285e9899741d937830c2225ff8d01bc"></a>Custom <code>@Repository</code> with Criteria API query with <code>fetch</code> and <code>distinct</code></h6>
+<h5 id="aname7285e9899741d937830c2225ff8d01bcacustomrepositorywithcriteriaapiquerywithfetchanddistinct"><a name="7285e9899741d937830c2225ff8d01bc"></a>Custom <code>@Repository</code> with Criteria API query with <code>fetch</code> and <code>distinct</code></h5>
 <p>A workaround to the issue with duplicates due to using <code>join</code> or <code>fetch</code> in Criteria API is to use <code>distinct</code> method.</p>
 <pre><code class="java language-java">cq.select(book)
     .distinct(distinct)
@@ -1194,7 +1197,7 @@ FROM   book_categories categories0_
                ON categories0_.categories_id = category1_.id
 WHERE  categories0_.book_id = ? /*58*/
 </code></pre>
-<h5 id="aname239f2f55854878f99d5d4d379a765d39aentitywithfetchjoin"><a name="239f2f55854878f99d5d4d379a765d39"></a>Entity with <code>@Fetch(JOIN)</code></h5>
+<h4 id="aname239f2f55854878f99d5d4d379a765d39aentitywithfetchjoin"><a name="239f2f55854878f99d5d4d379a765d39"></a>Entity with <code>@Fetch(JOIN)</code></h4>
 <p><code>com.example.spring.data.jpa.entity.BookWithFetchModeJoin</code></p>
 <pre><code class="java language-java">@Entity
 @Data
@@ -1211,7 +1214,7 @@ public class BookWithFetchModeJoin extends AbstractBook {
   private Set&lt;Category&gt; categories = new LinkedHashSet&lt;&gt;();
 }
 </code></pre>
-<h6 id="aname4a2070d3aad7ff832b5e36f76cc6f731acrudrepositoryfindbyid-1"><a name="4a2070d3aad7ff832b5e36f76cc6f731"></a><code>CrudRepository.findById</code></h6>
+<h5 id="aname4a2070d3aad7ff832b5e36f76cc6f731acrudrepositoryfindbyid-1"><a name="4a2070d3aad7ff832b5e36f76cc6f731"></a><code>CrudRepository.findById</code></h5>
 <p>When multiple child collection has <code>FetchMode.JOIN</code> 
 we face with issue <a href="https://hibernate.atlassian.net/browse/HHH-13740" rel="noopener noreferrer" target="_blank">HHH-13740</a> related to duplicates in the child collections.</p>
 <p>Find out more details about HHH-13740 in the separate <a href="HHH-13740/" rel="noopener noreferrer" target="_blank">examples</a>.</p>
@@ -1258,7 +1261,7 @@ FROM   book_with_fetch_mode_join bookwithfe0_
                     ON categories3_.categories_id = category4_.id
 WHERE  bookwithfe0_.id = ?
 </code></pre>
-<h6 id="anameecfc45d33505baec3249b78ec3e66059aquerymethod-1"><a name="ecfc45d33505baec3249b78ec3e66059"></a>Query method</h6>
+<h5 id="anameecfc45d33505baec3249b78ec3e66059aquerymethod-1"><a name="ecfc45d33505baec3249b78ec3e66059"></a>Query method</h5>
 <p>The behavior of JQPL queries (query methods) during the loading entities 
 with associations with <code>FetchMode.JOIN</code> is, at first glance, a bit unexpected. 
 Instead of loading related collections annotated with <code>@Fetch(JOIN)</code> in the same query 
@@ -1328,7 +1331,7 @@ FROM   book_with_fetch_mode_join_authors authors0_
                ON authors0_.authors_id = author1_.id
 WHERE  authors0_.book_with_fetch_mode_join_id = ? /*24*/
 </code></pre>
-<h5 id="aname61d561e02c4002d6d6ad4646e5d328f7aentitywithfetchselect"><a name="61d561e02c4002d6d6ad4646e5d328f7"></a>Entity with <code>@Fetch(SELECT)</code></h5>
+<h4 id="aname61d561e02c4002d6d6ad4646e5d328f7aentitywithfetchselect"><a name="61d561e02c4002d6d6ad4646e5d328f7"></a>Entity with <code>@Fetch(SELECT)</code></h4>
 <p><code>com.example.spring.data.jpa.entity.BookWithFetchModeSelect</code></p>
 <pre><code class="java language-java">@Entity
 @Data
@@ -1346,7 +1349,7 @@ public class BookWithFetchModeSelect extends AbstractBook {
 }
 </code></pre>
 <p>With <code>FetchMode.SELECT</code> each association for all parent entities from the result set is loaded with a separate SQL <code>SELECT</code>. </p>
-<h6 id="aname4a2070d3aad7ff832b5e36f76cc6f731acrudrepositoryfindbyid-2"><a name="4a2070d3aad7ff832b5e36f76cc6f731"></a><code>CrudRepository.findById</code></h6>
+<h5 id="aname4a2070d3aad7ff832b5e36f76cc6f731acrudrepositoryfindbyid-2"><a name="4a2070d3aad7ff832b5e36f76cc6f731"></a><code>CrudRepository.findById</code></h5>
 <p><code>com.example.spring.data.jpa.BookWithFetchModeSelectRepositoryTest</code> extends <code>com.example.spring.data.jpa.AbstractBookRepositoryBaseTest</code></p>
 <pre><code class="java language-java">@Test
 void findById() {
@@ -1383,7 +1386,7 @@ FROM   book_with_fetch_mode_select_categories categories0_
                ON categories0_.categories_id = category1_.id
 WHERE  categories0_.book_with_fetch_mode_select_id = ? /*69*/
 </code></pre>
-<h6 id="anameecfc45d33505baec3249b78ec3e66059aquerymethod-2"><a name="ecfc45d33505baec3249b78ec3e66059"></a>Query method</h6>
+<h5 id="anameecfc45d33505baec3249b78ec3e66059aquerymethod-2"><a name="ecfc45d33505baec3249b78ec3e66059"></a>Query method</h5>
 <p><code>com.example.spring.data.jpa.BookWithFetchModeSelectRepositoryTest</code> extends <code>com.example.spring.data.jpa.AbstractBookRepositoryBaseTest</code></p>
 <pre><code class="java language-java">@Test
 void queryMethod() {
@@ -1446,7 +1449,7 @@ FROM   book_with_fetch_mode_select_categories categories0_
                ON categories0_.categories_id = category1_.id
 WHERE  categories0_.book_with_fetch_mode_select_id = ? /*69*/
 </code></pre>
-<h5 id="aname76b5b36ea931f6c209971594a5473ffaaentitywithfetchsubselect"><a name="76b5b36ea931f6c209971594a5473ffa"></a>Entity with <code>@Fetch(SUBSELECT)</code></h5>
+<h4 id="aname76b5b36ea931f6c209971594a5473ffaaentitywithfetchsubselect"><a name="76b5b36ea931f6c209971594a5473ffa"></a>Entity with <code>@Fetch(SUBSELECT)</code></h4>
 <p><code>com.example.spring.data.jpa.entity.BookWithFetchModeSubselect</code></p>
 <pre><code class="java language-java">@Entity
 @Data
@@ -1463,7 +1466,7 @@ public class BookWithFetchModeSubselect extends AbstractBook {
   private Set&lt;Category&gt; categories = new LinkedHashSet&lt;&gt;();
 }
 </code></pre>
-<h6 id="aname4a2070d3aad7ff832b5e36f76cc6f731acrudrepositoryfindbyid-3"><a name="4a2070d3aad7ff832b5e36f76cc6f731"></a><code>CrudRepository.findById</code></h6>
+<h5 id="aname4a2070d3aad7ff832b5e36f76cc6f731acrudrepositoryfindbyid-3"><a name="4a2070d3aad7ff832b5e36f76cc6f731"></a><code>CrudRepository.findById</code></h5>
 <p><code>com.example.spring.data.jpa.BookWithFetchModeSubselectRepositoryTest</code> extends <code>com.example.spring.data.jpa.AbstractBookRepositoryBaseTest</code></p>
 <pre><code class="java language-java">@Test
 void findById() {
@@ -1502,7 +1505,7 @@ FROM   book_with_fetch_mode_subselect_categories categories0_
                ON categories0_.categories_id = category1_.id
 WHERE  categories0_.book_with_fetch_mode_subselect_id = ? /*35*/
 </code></pre>
-<h6 id="anameecfc45d33505baec3249b78ec3e66059aquerymethod-3"><a name="ecfc45d33505baec3249b78ec3e66059"></a>Query method</h6>
+<h5 id="anameecfc45d33505baec3249b78ec3e66059aquerymethod-3"><a name="ecfc45d33505baec3249b78ec3e66059"></a>Query method</h5>
 <p><code>com.example.spring.data.jpa.BookWithFetchModeSubselectRepositoryTest</code> extends <code>com.example.spring.data.jpa.AbstractBookRepositoryBaseTest</code></p>
 <pre><code class="java language-java">@Test
 void queryMethod() {
@@ -1552,7 +1555,7 @@ WHERE  categories0_.book_with_fetch_mode_subselect_id IN (SELECT bookwithfe0_.id
                                                           FROM   book_with_fetch_mode_subselect bookwithfe0_
                                                           WHERE  bookwithfe0_.title LIKE ? ESCAPE ?) /*%Pattern%,\*/
 </code></pre>
-<h5 id="anameb77feec501b1fe41ebee44d25e206880aentitywithbatchsize"><a name="b77feec501b1fe41ebee44d25e206880"></a>Entity with <code>@BatchSize</code></h5>
+<h4 id="anameb77feec501b1fe41ebee44d25e206880aentitywithbatchsize"><a name="b77feec501b1fe41ebee44d25e206880"></a>Entity with <code>@BatchSize</code></h4>
 <p><code>com.example.spring.data.jpa.entity.BookWithBatchSize</code></p>
 <pre><code class="java language-java">@Entity
 @Data
@@ -1569,7 +1572,7 @@ public class BookWithBatchSize extends AbstractBook {
   private Set&lt;Category&gt; categories = new LinkedHashSet&lt;&gt;();
 }
 </code></pre>
-<h6 id="aname4a2070d3aad7ff832b5e36f76cc6f731acrudrepositoryfindbyid-4"><a name="4a2070d3aad7ff832b5e36f76cc6f731"></a><code>CrudRepository.findById</code></h6>
+<h5 id="aname4a2070d3aad7ff832b5e36f76cc6f731acrudrepositoryfindbyid-4"><a name="4a2070d3aad7ff832b5e36f76cc6f731"></a><code>CrudRepository.findById</code></h5>
 <p><code>com.example.spring.data.jpa.BookWithBatchSizeRepositoryTest</code> extends <code>com.example.spring.data.jpa.AbstractBookRepositoryBaseTest</code></p>
 <pre><code class="java language-java">@Test
 void findById() {
@@ -1606,7 +1609,7 @@ FROM   book_with_batch_size_categories categories0_
                ON categories0_.categories_id = category1_.id
 WHERE  categories0_.book_with_batch_size_id = ? /*11*/
 </code></pre>
-<h6 id="anameecfc45d33505baec3249b78ec3e66059aquerymethod-4"><a name="ecfc45d33505baec3249b78ec3e66059"></a>Query method</h6>
+<h5 id="anameecfc45d33505baec3249b78ec3e66059aquerymethod-4"><a name="ecfc45d33505baec3249b78ec3e66059"></a>Query method</h5>
 <p><code>com.example.spring.data.jpa.BookWithBatchSizeRepositoryTest</code> extends <code>com.example.spring.data.jpa.AbstractBookRepositoryBaseTest</code></p>
 <pre><code class="java language-java">@Test
 void queryMethod() {
@@ -1650,7 +1653,7 @@ FROM   book_with_batch_size_categories categories0_
                ON categories0_.categories_id = category1_.id
 WHERE  categories0_.book_with_batch_size_id IN ( ?, ? ) /*12,11*/
 </code></pre>
-<h5 id="aname1049387d75c060dc77f67c5477fb48d4aentitywithmultiplebagsresultinginmultiplebagfetchexception"><a name="1049387d75c060dc77f67c5477fb48d4"></a>Entity with multiple bags resulting in <code>MultipleBagFetchException</code></h5>
+<h4 id="aname1049387d75c060dc77f67c5477fb48d4aentitywithmultiplebagsresultinginmultiplebagfetchexception"><a name="1049387d75c060dc77f67c5477fb48d4"></a>Entity with multiple bags resulting in <code>MultipleBagFetchException</code></h4>
 <p>Entity with multiple bags (two <code>@ManyToMany</code> collections with type <code>List</code>) resulting in <code>MultipleBagFetchException</code></p>
 <p><code>com.example.spring.data.jpa.entity.BookWithMultipleBags</code></p>
 <pre><code class="java language-java">@Entity
@@ -1700,7 +1703,7 @@ void multipleBagFetchException() {
 <p>Trying to fetch multiple many-to-many relations that both have type List results in exception 
 (<code>List&lt;Author&gt; authors</code> and <code>List&lt;Category&gt; categories</code>) an exception 
 <code>org.hibernate.loader.MultipleBagFetchException: cannot simultaneously fetch multiple bags</code> is thrown.</p>
-<h4 id="aname9a3347442ef97064c198bda69c16f816alockingstrategies-1"><a name="9a3347442ef97064c198bda69c16f816"></a>Locking strategies</h4>
+<h3 id="aname9a3347442ef97064c198bda69c16f816alockingstrategies-1"><a name="9a3347442ef97064c198bda69c16f816"></a>Locking strategies</h3>
 <p><code>com.example.spring.data.jpa.entity.BookRating</code></p>
 <pre><code class="java language-java">@Entity
 @Data
@@ -1724,7 +1727,7 @@ public class BookRating {
   private int numberOfRatings;
 }
 </code></pre>
-<h5 id="aname272ede57357a5f214f2904c15e3fe103aimplicitoptimisticlockofentitywithversiononmodification"><a name="272ede57357a5f214f2904c15e3fe103"></a>Implicit optimistic lock of entity with <code>@Version</code> on modification</h5>
+<h4 id="aname272ede57357a5f214f2904c15e3fe103aimplicitoptimisticlockofentitywithversiononmodification"><a name="272ede57357a5f214f2904c15e3fe103"></a>Implicit optimistic lock of entity with <code>@Version</code> on modification</h4>
 <p><code>com.example.spring.data.jpa.repository.BookRatingRepository</code></p>
 <pre><code class="java language-java">BookRating findByBookIsbn(String isbn);
 </code></pre>
@@ -1806,7 +1809,7 @@ WHERE  id = ? /*10*/
 </code></pre>
 <p><strong>(6)</strong> Optimistic locking failed; nested exception is <code>org.hibernate.StaleObjectStateException</code> Row was updated or deleted by another transaction (or unsaved-value mapping was incorrect)</p>
 <p><strong>(7)</strong> Initiating transaction #1 rollback after commit exception</p>
-<h5 id="aname502c2256dbc0a223143500d9f9b3b5ccaexplicitoptimisticlocklockoptimistic"><a name="502c2256dbc0a223143500d9f9b3b5cc"></a>Explicit optimistic lock <code>@Lock(OPTIMISTIC)</code></h5>
+<h4 id="aname502c2256dbc0a223143500d9f9b3b5ccaexplicitoptimisticlocklockoptimistic"><a name="502c2256dbc0a223143500d9f9b3b5cc"></a>Explicit optimistic lock <code>@Lock(OPTIMISTIC)</code></h4>
 <p><code>com.example.spring.data.jpa.repository.BookRatingRepository</code></p>
 <pre><code class="java language-java">@Lock(OPTIMISTIC)
 @Query("select br from BookRating br where br.book.isbn = :isbn")
@@ -1887,7 +1890,7 @@ WHERE  id = ? /*6*/
 </code></pre>
 <p><strong>(6)</strong> Optimistic locking failed; nested exception is <code>org.hibernate.OptimisticLockException</code></p>
 <p><strong>(7)</strong> Initiating transaction #1 rollback after commit exception</p>
-<h5 id="aname6efaef54090120ae008692898745a547aexplicitoptimisticlocklockoptimistic_force_increment"><a name="6efaef54090120ae008692898745a547"></a>Explicit optimistic lock <code>@Lock(OPTIMISTIC_FORCE_INCREMENT)</code></h5>
+<h4 id="aname6efaef54090120ae008692898745a547aexplicitoptimisticlocklockoptimistic_force_increment"><a name="6efaef54090120ae008692898745a547"></a>Explicit optimistic lock <code>@Lock(OPTIMISTIC_FORCE_INCREMENT)</code></h4>
 <p><code>com.example.spring.data.jpa.repository.BookRatingRepository</code></p>
 <pre><code class="java language-java">@Lock(OPTIMISTIC_FORCE_INCREMENT)
 @Query("select br from BookRating br where br.book.isbn = :isbn")
@@ -1966,7 +1969,7 @@ WHERE  id = ? /*4*/
 </code></pre>
 <p><strong>(6)</strong> Optimistic locking failed; nested exception is <code>org.hibernate.StaleObjectStateException</code> Row was updated or deleted by another transaction (or unsaved-value mapping was incorrect)</p>
 <p><strong>(7)</strong> Initiating transaction #1 rollback after commit exception</p>
-<h5 id="anamec2b4e4a7c69f6c6b216e05a547731c57aexplicitpessimisticwritelocklockpessimistic_write"><a name="c2b4e4a7c69f6c6b216e05a547731c57"></a>Explicit pessimistic write lock <code>@Lock(PESSIMISTIC_WRITE)</code></h5>
+<h4 id="anamec2b4e4a7c69f6c6b216e05a547731c57aexplicitpessimisticwritelocklockpessimistic_write"><a name="c2b4e4a7c69f6c6b216e05a547731c57"></a>Explicit pessimistic write lock <code>@Lock(PESSIMISTIC_WRITE)</code></h4>
 <p><code>com.example.spring.data.jpa.repository.BookRatingRepository</code></p>
 <pre><code class="java language-java">@Lock(PESSIMISTIC_WRITE)
 @Query("select br from BookRating br where br.book.isbn = :isbn")
@@ -2057,7 +2060,7 @@ SET    book_id = ?, /*7*/
 WHERE  id = ? /*8*/
        AND version = ? /*1*/
 </code></pre>
-<h5 id="aname657a4b524b13a122706ee27f7675bcf7aexplicitpessimisticreadlocklockpessimistic_read"><a name="657a4b524b13a122706ee27f7675bcf7"></a>Explicit pessimistic read lock <code>@Lock(PESSIMISTIC_READ)</code></h5>
+<h4 id="aname657a4b524b13a122706ee27f7675bcf7aexplicitpessimisticreadlocklockpessimistic_read"><a name="657a4b524b13a122706ee27f7675bcf7"></a>Explicit pessimistic read lock <code>@Lock(PESSIMISTIC_READ)</code></h4>
 <p><code>com.example.spring.data.jpa.repository.BookRatingRepository</code></p>
 <pre><code class="java language-java">@Lock(PESSIMISTIC_READ)
 @Query("select br from BookRating br where br.book.isbn = :isbn")
@@ -2116,7 +2119,7 @@ AND        book1_.isbn=? FOR share OF bookrating0_ /*007-6092019909*/
 </code></pre>
 <p><strong>(3)</strong> Initiating transaction #1 commit</p>
 <p><strong>(4)</strong> Initiating transaction #2 commit</p>
-<h4 id="aname532d5a8c2809912b992aa517d1e46cedamappingfromentitytodtousingmapstruct"><a name="532d5a8c2809912b992aa517d1e46ced"></a>Mapping from entity to DTO using MapStruct</h4>
+<h3 id="aname532d5a8c2809912b992aa517d1e46cedamappingfromentitytodtousingmapstruct"><a name="532d5a8c2809912b992aa517d1e46ced"></a>Mapping from entity to DTO using MapStruct</h3>
 <p><code>com.example.spring.data.jpa.dto.BookDto</code></p>
 <pre><code class="java language-java">@Data
 public class BookDto {
@@ -2158,7 +2161,7 @@ void mapToDto() {
   });
 }
 </code></pre>
-<h3 id="aname1ef62fd469285970a640c75be1cbdb9aaspringdatajdbcexample"><a name="1ef62fd469285970a640c75be1cbdb9a"></a>Spring Data JDBC example</h3>
+<h2 id="aname1ef62fd469285970a640c75be1cbdb9aaspringdatajdbcexample"><a name="1ef62fd469285970a640c75be1cbdb9a"></a>Spring Data JDBC example</h2>
 <p><a href="spring-data-jdbc-examples/" rel="noopener noreferrer" target="_blank">spring-data-jdbc-examples</a> has the same domain (book, author, category, rating) like Spring Data JPA example.</p>
 <p>In the example there are 3 Aggregates:</p>
 <ol>
@@ -2170,7 +2173,7 @@ void mapToDto() {
 <p><img src="spring-data-jdbc-examples/img/classes.png" alt="Actual UML class diagram" /></p>
 <p><strong>Entity-relationship diagram</strong></p>
 <p><img src="spring-data-jdbc-examples/img/tables.png" alt="Entity-relationship diagram" /></p>
-<h4 id="anameca1ea02c10b7c37f425b9b7dd86d5e11atestdata-1"><a name="ca1ea02c10b7c37f425b9b7dd86d5e11"></a>Test data</h4>
+<h3 id="anameca1ea02c10b7c37f425b9b7dd86d5e11atestdata-1"><a name="ca1ea02c10b7c37f425b9b7dd86d5e11"></a>Test data</h3>
 <pre><code class="java language-java">void saveCategories() {
   softwareDevelopment = Category.of("Software development");
   softwareDevelopment = categoryRepository.save(softwareDevelopment);
@@ -2208,7 +2211,7 @@ void saveBooks() {
   eip = bookRepository.save(eip);
 }
 </code></pre>
-<h4 id="anamecf43137803fb51915f84cbc5c3068d34aqueries"><a name="cf43137803fb51915f84cbc5c3068d34"></a>Queries</h4>
+<h3 id="anamecf43137803fb51915f84cbc5c3068d34aqueries"><a name="cf43137803fb51915f84cbc5c3068d34"></a>Queries</h3>
 <pre><code class="java language-java">@Data
 @AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
@@ -2242,7 +2245,7 @@ public final class Book {
   }
 }
 </code></pre>
-<h5 id="aname07109b7f3df585c23975718b13843dacacrudrepositorysave"><a name="07109b7f3df585c23975718b13843dac"></a><code>CrudRepository.save</code></h5>
+<h4 id="aname07109b7f3df585c23975718b13843dacacrudrepositorysave"><a name="07109b7f3df585c23975718b13843dac"></a><code>CrudRepository.save</code></h4>
 <p>During saving all entities referenced from an aggregate root are deleted and recreated.</p>
 <p><code>com.example.spring.data.jdbc.BookRepositoryTest</code></p>
 <pre><code class="java language-java">@Test
@@ -2335,7 +2338,7 @@ VALUES      (?, /*2*/
 VALUES      (?, /*2*/
               ?) /*1*/
 </code></pre>
-<h5 id="aname4a2070d3aad7ff832b5e36f76cc6f731acrudrepositoryfindbyid-5"><a name="4a2070d3aad7ff832b5e36f76cc6f731"></a><code>CrudRepository.findById</code></h5>
+<h4 id="aname4a2070d3aad7ff832b5e36f76cc6f731acrudrepositoryfindbyid-5"><a name="4a2070d3aad7ff832b5e36f76cc6f731"></a><code>CrudRepository.findById</code></h4>
 <p><code>com.example.spring.data.jdbc.BookRepositoryTest</code></p>
 <pre><code class="java language-java">@Test
 void findById() {
@@ -2364,7 +2367,7 @@ ORDER  BY "book_key"
 FROM   "book_category"
 WHERE  "book_category"."book" = ? /*1*/
 </code></pre>
-<h5 id="anamef34c8b22bd6fb5a16c60b7ecd412d675apagingandsortingrepositoryfindallpageable"><a name="f34c8b22bd6fb5a16c60b7ecd412d675"></a><code>PagingAndSortingRepository.findAll(Pageable)</code></h5>
+<h4 id="anamef34c8b22bd6fb5a16c60b7ecd412d675apagingandsortingrepositoryfindallpageable"><a name="f34c8b22bd6fb5a16c60b7ecd412d675"></a><code>PagingAndSortingRepository.findAll(Pageable)</code></h4>
 <p><code>com.example.spring.data.jdbc.BookRepositoryTest</code></p>
 <pre><code class="java language-java">@Test
 void findAllWithPageable() {
@@ -2404,7 +2407,7 @@ WHERE  "book_category"."book" = ? /*1*/
 <pre><code class="sql language-sql">SELECT Count(*)
 FROM   "book"
 </code></pre>
-<h5 id="anamece75f4a17b574599267b2a18924cb931aquerywithsql"><a name="ce75f4a17b574599267b2a18924cb931"></a><code>@Query</code> with SQL</h5>
+<h4 id="anamefe9f09d7c10598e080ef1ac1502711dfaquerywithsql"><a name="fe9f09d7c10598e080ef1ac1502711df"></a><code>@Query</code> with SQL</h4>
 <p>Spring Data JDBC is also a subject to "N+1 selects problem". </p>
 <p><code>com.example.spring.data.jdbc.repository.BookRepository</code></p>
 <pre><code class="java language-java">@Query("SELECT * FROM BOOK WHERE TITLE LIKE CONCAT('%', :title, '%')"
@@ -2452,7 +2455,7 @@ ORDER  BY "book_key"
 FROM   "book_category"
 WHERE  "book_category"."book" = ? /*2*/
 </code></pre>
-<h5 id="anamece75f4a17b574599267b2a18924cb931aquerywithsqljoin"><a name="ce75f4a17b574599267b2a18924cb931"></a><code>@Query</code> with SQL join</h5>
+<h4 id="anamece75f4a17b574599267b2a18924cb931aquerywithsqljoin"><a name="ce75f4a17b574599267b2a18924cb931"></a><code>@Query</code> with SQL join</h4>
 <p>Spring Data JDBC doesn't have a solution to "N+1 selects problem".
 <code>JOIN</code> in SQL query leads to duplicates in the result set.
 Separate queries are still generated for <code>List&lt;AuthorRef&gt; authors</code> and <code>Set&lt;CategoryRef&gt; categories</code>.</p>
@@ -2476,7 +2479,7 @@ void queryMethodWithJoin() {
 <p>The EIP Book is present 2 times in the result list.
 Duplicate is caused by join of the EIP Book with 2 Authors.
 The POEAA Book has 1 author, so doesn't have duplicates in the result list.</p>
-<h5 id="aname59581bf130250c31253eac07da3d2c56aquerywithsqlandpagination"><a name="59581bf130250c31253eac07da3d2c56"></a><code>@Query</code> with SQL and pagination</h5>
+<h4 id="aname59581bf130250c31253eac07da3d2c56aquerywithsqlandpagination"><a name="59581bf130250c31253eac07da3d2c56"></a><code>@Query</code> with SQL and pagination</h4>
 <p><code>com.example.spring.data.jdbc.repository.BookRepository</code></p>
 <pre><code class="java language-java">@Query("SELECT * FROM BOOK WHERE TITLE LIKE CONCAT('%', :title, '%')"
     + " ORDER BY PUBLICATION_DATE"
@@ -2531,7 +2534,7 @@ WHERE  "book_category"."book" = ? /*2*/
 FROM   book
 WHERE  title LIKE Concat('%', ?, '%') /*Pattern*/
 </code></pre>
-<h4 id="aname9a3347442ef97064c198bda69c16f816alockingstrategies-2"><a name="9a3347442ef97064c198bda69c16f816"></a>Locking strategies</h4>
+<h3 id="aname9a3347442ef97064c198bda69c16f816alockingstrategies-2"><a name="9a3347442ef97064c198bda69c16f816"></a>Locking strategies</h3>
 <p><code>com.example.spring.data.jdbc.entity.BookRating</code></p>
 <pre><code class="java language-java">@Data
 @AllArgsConstructor
@@ -2558,7 +2561,7 @@ public class BookRating {
   }
 }
 </code></pre>
-<h5 id="aname272ede57357a5f214f2904c15e3fe103aimplicitoptimisticlockofentitywithversiononmodification-1"><a name="272ede57357a5f214f2904c15e3fe103"></a>Implicit optimistic lock of entity with <code>@Version</code> on modification</h5>
+<h4 id="aname272ede57357a5f214f2904c15e3fe103aimplicitoptimisticlockofentitywithversiononmodification-1"><a name="272ede57357a5f214f2904c15e3fe103"></a>Implicit optimistic lock of entity with <code>@Version</code> on modification</h4>
 <p>Spring Data JDBC supports optimistic locking by using <code>org.springframework.data.annotation.Version</code> annotation.
 The behaviour is similar to JPA with <code>javax.persistence.Version</code> annotation.</p>
 <p><code>com.example.spring.data.jdbc.BookRatingRepositoryTest</code></p>
@@ -2639,7 +2642,7 @@ WHERE  "book_rating"."id" = ? /*1*/
 </code></pre>
 <p><strong>(5)</strong> Optimistic locking failed; nested exception is <code>org.springframework.dao.OptimisticLockingFailureException</code></p>
 <p><strong>(6)</strong> Initiating transaction #1 rollback after exception</p>
-<h4 id="aname532d5a8c2809912b992aa517d1e46cedamappingfromentitytodtousingmapstruct-1"><a name="532d5a8c2809912b992aa517d1e46ced"></a>Mapping from entity to DTO using MapStruct</h4>
+<h3 id="aname532d5a8c2809912b992aa517d1e46cedamappingfromentitytodtousingmapstruct-1"><a name="532d5a8c2809912b992aa517d1e46ced"></a>Mapping from entity to DTO using MapStruct</h3>
 <p><code>com.example.spring.data.jdbc.dto.BookDto</code></p>
 <pre><code class="java language-java">@Data
 public class BookDto {
@@ -2710,7 +2713,7 @@ void mapToDto() {
   eip.ifPresent(dto -&gt; log.info("{}", dto));
 }
 </code></pre>
-<h4 id="anamefc1290b67d538903eba761ca9f952dc9areactivemonofromcallablewrappingsynchronouscall"><a name="fc1290b67d538903eba761ca9f952dc9"></a>Reactive <code>Mono.fromCallable</code> wrapping synchronous call</h4>
+<h3 id="anamefc1290b67d538903eba761ca9f952dc9areactivemonofromcallablewrappingsynchronouscall"><a name="fc1290b67d538903eba761ca9f952dc9"></a>Reactive <code>Mono.fromCallable</code> wrapping synchronous call</h3>
 <p><code>com.example.spring.data.jdbc.BookRepositoryTest</code></p>
 <pre><code class="java language-java">@Test
 void reactiveWrapBlocking() {
@@ -2722,16 +2725,16 @@ void reactiveWrapBlocking() {
   assertThat(book).satisfies(equalTo(this.poeaa));
 }
 </code></pre>
-<h3 id="aname1418b03e9a73d96a8c697855b6c0401easpringdatar2dbcexample"><a name="1418b03e9a73d96a8c697855b6c0401e"></a>Spring Data R2DBC example</h3>
+<h2 id="aname1418b03e9a73d96a8c697855b6c0401easpringdatar2dbcexample"><a name="1418b03e9a73d96a8c697855b6c0401e"></a>Spring Data R2DBC example</h2>
 <p><a href="spring-data-r2dbc-examples/" rel="noopener noreferrer" target="_blank">spring-data-r2dbc-examples</a> has the same domain (book, author, category, rating) like Spring Data JPA example.</p>
 <p><strong>UML class diagram</strong></p>
 <p><img src="spring-data-r2dbc-examples/img/classes.png" alt="Actual UML class diagram" /></p>
 <p><strong>Entity-relationship diagram</strong></p>
 <p><img src="spring-data-r2dbc-examples/img/tables.png" alt="Entity-relationship diagram" /></p>
 <p>Test data is the same like in Spring Data JDBC example.</p>
-<h4 id="anamecf43137803fb51915f84cbc5c3068d34aqueries-1"><a name="cf43137803fb51915f84cbc5c3068d34"></a>Queries</h4>
+<h3 id="anamecf43137803fb51915f84cbc5c3068d34aqueries-1"><a name="cf43137803fb51915f84cbc5c3068d34"></a>Queries</h3>
 <p><code>com.example.spring.data.r2dbc.BookRepositoryTest</code></p>
-<h5 id="aname4a2070d3aad7ff832b5e36f76cc6f731acrudrepositoryfindbyid-6"><a name="4a2070d3aad7ff832b5e36f76cc6f731"></a><code>CrudRepository.findById</code></h5>
+<h4 id="aname4a2070d3aad7ff832b5e36f76cc6f731acrudrepositoryfindbyid-6"><a name="4a2070d3aad7ff832b5e36f76cc6f731"></a><code>CrudRepository.findById</code></h4>
 <p><code>com.example.spring.data.r2dbc.BookRepositoryTest</code></p>
 <pre><code class="java language-java">@Test
 void findById() {
@@ -2747,7 +2750,7 @@ FROM   book
 WHERE  book.id = $1
 LIMIT  2
 </code></pre>
-<h5 id="aname74790cb9ca9d56e09b465befb7c7603baquerymethodwithsort"><a name="74790cb9ca9d56e09b465befb7c7603b"></a>Query method with <code>Sort</code></h5>
+<h4 id="aname74790cb9ca9d56e09b465befb7c7603baquerymethodwithsort"><a name="74790cb9ca9d56e09b465befb7c7603b"></a>Query method with <code>Sort</code></h4>
 <p><code>com.example.spring.data.r2dbc.repository.BookRepository</code></p>
 <pre><code class="java language-java">Flux&lt;Book&gt; findByTitleContains(String title, Sort sort);
 </code></pre>
@@ -2770,7 +2773,7 @@ FROM   book
 WHERE  book.title LIKE $1
 ORDER  BY publication_date ASC
 </code></pre>
-<h5 id="aname59581bf130250c31253eac07da3d2c56aquerywithsqlandpagination-1"><a name="59581bf130250c31253eac07da3d2c56"></a><code>@Query</code> with SQL and pagination</h5>
+<h4 id="aname59581bf130250c31253eac07da3d2c56aquerywithsqlandpagination-1"><a name="59581bf130250c31253eac07da3d2c56"></a><code>@Query</code> with SQL and pagination</h4>
 <p>To create an instance of <code>org.springframework.data.domain.PageImpl</code> implementing <code>org.springframework.data.domain.Page</code> 
 a result set and total number of elements are required. </p>
 <p>A result set and total number of elements can be merged into a <code>PageImpl</code> using 
@@ -2819,7 +2822,7 @@ ORDER BY publication_date offset :startFETCH next :rowCount rows only
 FROM   book
 WHERE  title LIKE Concat('%', :title, '%')
 </code></pre>
-<h5 id="aname532d5a8c2809912b992aa517d1e46cedamappingfromentitytodtousingmapstruct-2"><a name="532d5a8c2809912b992aa517d1e46ced"></a>Mapping from entity to DTO using MapStruct</h5>
+<h4 id="aname532d5a8c2809912b992aa517d1e46cedamappingfromentitytodtousingmapstruct-2"><a name="532d5a8c2809912b992aa517d1e46ced"></a>Mapping from entity to DTO using MapStruct</h4>
 <p>Fetching associations and mapping to DTO are not easy tasks with Spring Data R2DBC.
 The parent entity has to be merged with its associations.
 It can be done using 
@@ -2909,6 +2912,9 @@ void mapToDto() {
 </div>
     </div>
   </section>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.20.0/components/prism-core.min.js" integrity="sha256-9h14mWYYiQGkeAKg2JtijbqApb56kgw57WN6sI6dwH0=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.20.0/plugins/autoloader/prism-autoloader.min.js" integrity="sha256-3S2PESHNt0YNL65z57WuHPHIv12fibpBDXepyCGHftw=" crossorigin="anonymous"></script>
 </body>
 
 </html>
