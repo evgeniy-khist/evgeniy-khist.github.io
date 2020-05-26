@@ -99,13 +99,14 @@
       data-size="large" data-show-count="true" aria-label="Fork evgeniy-khist/spring-data-examples on GitHub">Fork</a>
   </div>
   <div class="column has-text-right has-text-grey">
-    <time datetime="2020-05-18">18 May 2020</time>
+    <time datetime="2020-05-26">26 May 2020</time>
   </div>
 </div>
 
 <div class="content">
 <h1 id="springdatajpapitfallsandmodernalternativesspringdatajdbcandspringdatar2dbc">Spring Data JPA pitfalls and modern alternatives: Spring Data JDBC and Spring Data R2DBC</h1>
 <ul>
+<li><a href="#3b878279a04dc47d60932cb294d96259">Overview</a></li>
 <li><a href="#810bf4be9fd3907b3e5cff790716a958">Spring Data JPA</a></li>
 <li><a href="#75e0f07fedd63771fc35ec852a9c937f">Fetching strategies</a></li>
 <li><a href="#9a3347442ef97064c198bda69c16f816">Locking strategies</a></li>
@@ -167,6 +168,13 @@
 <li><a href="#59581bf130250c31253eac07da3d2c56"><code>@Query</code> with SQL and pagination</a></li>
 <li><a href="#532d5a8c2809912b992aa517d1e46ced">Mapping from entity to DTO using MapStruct</a></li></ul></li>
 </ul>
+<h2 id="aname3b878279a04dc47d60932cb294d96259aoverview"><a name="3b878279a04dc47d60932cb294d96259"></a>Overview</h2>
+<p>These examples demonstrates some common JPA pitfalls and evaluates alternatives from the Spring Data family:</p>
+<ul>
+<li><a href="spring-data-jpa-examples/" rel="noopener noreferrer" target="_blank">spring-data-jpa-examples</a> - some of common JPA pitfalls</li>
+<li><a href="spring-data-jdbc-examples/" rel="noopener noreferrer" target="_blank">spring-data-jdbc-examples</a> - Spring Data JDBC as a simpler alternative inspired by Domain-Driven Design</li>
+<li><a href="spring-data-r2dbc-examples/" rel="noopener noreferrer" target="_blank">spring-data-r2dbc-examples</a> - Spring Data R2DBC for reactive database connectivity</li>
+</ul>
 <p>Spring Data is a family of libraries aiming to simplify the implementation of a data access layer for Spring-based applications by reducing boilerplate code. 
 Spring Data makes it easy to implement a Repository for accessing persistent entities in the underlying data store.
 Spring Data JPA allows to build repositories based on JPA.</p>
@@ -181,12 +189,6 @@ detaching and merging entities, first-level cache, lazy loading, dirty checking,
 More importantly, in the JPA, many DB calls are made behind the scenes.
 A simple query sometimes leads to multiple SQL queries to a DB.
 In its turn, too many SQL queries leads to performance problems.</p>
-<p>These examples demonstrates some common JPA pitfalls and evaluates alternatives from the Spring Data family:</p>
-<ul>
-<li><a href="spring-data-jpa-examples/" rel="noopener noreferrer" target="_blank">spring-data-jpa-examples</a> - some of common JPA pitfalls</li>
-<li><a href="spring-data-jdbc-examples/" rel="noopener noreferrer" target="_blank">spring-data-jdbc-examples</a> - Spring Data JDBC as a simpler alternative inspired by Domain-Driven Design</li>
-<li><a href="spring-data-r2dbc-examples/" rel="noopener noreferrer" target="_blank">spring-data-r2dbc-examples</a> - Spring Data R2DBC for reactive database connectivity</li>
-</ul>
 <h2 id="aname810bf4be9fd3907b3e5cff790716a958aspringdatajpa"><a name="810bf4be9fd3907b3e5cff790716a958"></a>Spring Data JPA</h2>
 <p>Spring Data JPA allows writing less boilerplate code, but JPA and Hibernate still have many pitfalls.
 The ones described in this example, I consider the most common pitfalls.</p>
