@@ -13,7 +13,7 @@
   },
   "homepage": "https://github.com/evgeniy-khist/evgeniy-khist.github.io",
   "devDependencies": {
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "camelcase": "^6.0.0",
     "glob": "^7.1.6",
     "handlebars": "^4.7.6",
