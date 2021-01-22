@@ -22,10 +22,13 @@ A simple tool built with Bash and Node.js converting GitHub repositories into a 
     ./build.sh
     ```
 
-3. To build one or few specific projects pass their names as arguments
+## Testing
+
+1. To build one or few specific projects for testing pass their names as arguments
     ```bash
     ./build.sh postgresql-performance-essentials spring-data-examples
     ```
+2. **Use it only for testing, don't use before pushing to the repo**
 
 ## Serving website locally
 
