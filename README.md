@@ -4,7 +4,7 @@ A simple tool built with Bash and Node.js converting GitHub repositories into a 
 
 ## Prerequisites
 
-1. Install [Node.js](https://nodejs.org/en/download/) 12.x
+1. Install [Node.js](https://nodejs.org/en/download/) 12+
 2. Install the `npm` dependencies
     ```bash
     npm i
@@ -21,3 +21,13 @@ A simple tool built with Bash and Node.js converting GitHub repositories into a 
     ```bash
     ./build.sh
     ```
+
+3. To build one or few specific projects pass their names as arguments
+    ```bash
+    ./build.sh postgresql-performance-essentials spring-data-examples
+    ```
+
+## Serving website locally
+
+1. Run `./serve.sh`
+2. Open `http://localhost:8080` in browser

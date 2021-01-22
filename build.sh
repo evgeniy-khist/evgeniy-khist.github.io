@@ -1,15 +1,31 @@
 #!/bin/bash
 
-projects=(spring-data-examples geohash-example pairwise-comparison letsencrypt-docker-compose)
+if [ $# -eq 0 ]; then
+  projects=(spring-data-examples postgresql-performance-essentials geohash-example pairwise-comparison letsencrypt-docker-compose)
+else
+  projects=($*)
+fi
 
 for project in ${projects[@]}; do
   echo "Building $project"
   rm -rf "$project"
-  echo "Downloading $project GitHub repository"
-  curl "https://github.com/evgeniy-khist/${project}/archive/master.zip" -o "${project}.zip" -L
+
+  branches=(main master)
+
+  for branch in ${branches[@]}; do
+    echo "Downloading $project GitHub repository (${branch} branch)"
+    curl "https://github.com/evgeniy-khist/${project}/archive/${branch}.zip" -o "${project}.zip" -L --fail
+    if [ $? -eq 0 ]; then
+      break
+    fi
+  done
+
   unzip -q "${project}.zip"
   rm "${project}.zip"
-  mv "${project}-master" "$project"
+
+  mv ${project}-* "$project"
+  
+  echo
 done
 
 rm -f "index.html"

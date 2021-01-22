@@ -57,6 +57,8 @@
           <div class="navbar-dropdown">
               <a class="navbar-item" href="/spring-data-examples/">
                 Spring Data JPA pitfalls and modern alternatives: Spring Data JDBC and Spring Data R2DBC
+              </a>              <a class="navbar-item" href="/postgresql-performance-essentials/">
+                PostgreSQL Performance Essentials in 1 Hour
               </a>              <a class="navbar-item" href="/geohash-example/">
                 Rents Map - Geohash Example
               </a>              <a class="navbar-item" href="/pairwise-comparison/">
@@ -104,16 +106,16 @@
 </div>
 
 <div class="content">
-<h1 id="problemwithduplicateswhenfetchingmultiplemanytomanyrelationswithhibernatefetchmodejoin">Problem with duplicates when fetching multiple many-to-many relations with Hibernate FetchMode.JOIN</h1>
+<h1>Problem with duplicates when fetching multiple many-to-many relations with Hibernate FetchMode.JOIN</h1>
 <ul>
 <li>Java version - OpenJDK 11.0.6</li>
 <li>Hibernate version - 5.4.12.Final</li>
 </ul>
-<p>When there are multiple many-to-many relations with FetchMode.JOIN, 
+<p>When there are multiple many-to-many relations with FetchMode.JOIN,
 <code>session.find</code> returns a result with a child relation of type <code>List</code> containing duplicates.</p>
-<p>To avoid <code>MultipleBagFetchException: cannot simultaneously fetch multiple bags</code> when multiple <code>@ManyToMany</code> collections have <code>@Fetch(FetchMode.JOIN)</code>, 
+<p>To avoid <code>MultipleBagFetchException: cannot simultaneously fetch multiple bags</code> when multiple <code>@ManyToMany</code> collections have <code>@Fetch(FetchMode.JOIN)</code>,
 only one collection has type <code>List</code> and others have type <code>Set</code>.</p>
-<pre><code class="java language-java">@Entity
+<pre><code class="language-java">@Entity
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Book implements Serializable {
@@ -140,55 +142,55 @@ public class Book implements Serializable {
 }
 </code></pre>
 <p>With the following test data</p>
-<pre><code class="java language-java">softwareDevelopment = new Category("Software development");
+<pre><code class="language-java">softwareDevelopment = new Category(&quot;Software development&quot;);
 session.save(softwareDevelopment);
 
-systemDesign = new Category("System design");
+systemDesign = new Category(&quot;System design&quot;);
 session.save(systemDesign);
 
-martinFowler = new Author("Martin Fowler");
+martinFowler = new Author(&quot;Martin Fowler&quot;);
 session.save(martinFowler);
 
-gregorHohpe = new Author("Gregor Hohpe");
+gregorHohpe = new Author(&quot;Gregor Hohpe&quot;);
 session.save(gregorHohpe);
 
 gregorHohpe = new Author();
-gregorHohpe.setFullName("Gregor Hohpe");
+gregorHohpe.setFullName(&quot;Gregor Hohpe&quot;);
 session.save(gregorHohpe);
 
 bobbyWoolf = new Author();
-bobbyWoolf.setFullName("Bobby Woolf");
+bobbyWoolf.setFullName(&quot;Bobby Woolf&quot;);
 session.save(bobbyWoolf);
 
 poeaa = new Book();
-poeaa.setIsbn("007-6092019909");
-poeaa.setTitle("Patterns of Enterprise Application Architecture");
-poeaa.setPublicationDate(LocalDate.parse("2002-11-15"));
+poeaa.setIsbn(&quot;007-6092019909&quot;);
+poeaa.setTitle(&quot;Patterns of Enterprise Application Architecture&quot;);
+poeaa.setPublicationDate(LocalDate.parse(&quot;2002-11-15&quot;));
 poeaa.getAuthors().addAll(List.of(martinFowler));
 poeaa.getCategories().addAll(List.of(softwareDevelopment, systemDesign));
 session.save(poeaa);
 
 eip = new Book();
-eip.setIsbn("978-0321200686");
-eip.setTitle("Enterprise Integration Patterns");
-eip.setPublicationDate(LocalDate.parse("2003-10-20"));
+eip.setIsbn(&quot;978-0321200686&quot;);
+eip.setTitle(&quot;Enterprise Integration Patterns&quot;);
+eip.setPublicationDate(LocalDate.parse(&quot;2003-10-20&quot;));
 eip.getAuthors().addAll(List.of(gregorHohpe, bobbyWoolf));
 eip.getCategories().addAll(List.of(softwareDevelopment, systemDesign));
 session.save(eip);
 </code></pre>
 <p>a <code>Book</code> entity found by ID contains duplicates in <code>List&lt;Author&gt; authors</code>
-because <code>Set&lt;Category&gt; categories</code> has size 2: <code>["Software development", "System design"]</code>.</p>
-<pre><code class="java language-java">@Test
+because <code>Set&lt;Category&gt; categories</code> has size 2: <code>[&quot;Software development&quot;, &quot;System design&quot;]</code>.</p>
+<pre><code class="language-java">@Test
 void findByIdOneAuthor() {
   try (Session session = HibernateUtil.getSessionFactory().openSession()) {
     Transaction transaction = session.beginTransaction();
-
+        
     Book poeaa = session.find(Book.class, this.poeaa.getId());
     assertThat(poeaa.getTitle()).isEqualTo(this.poeaa.getTitle());
 // The following line results in exception
-// because the actual poeaa.authors contains duplicates: ["Martin Fowler", "Martin Fowler"]
+// because the actual poeaa.authors contains duplicates: [&quot;Martin Fowler&quot;, &quot;Martin Fowler&quot;]
     assertThatHasAuthors(poeaa, martinFowler.getFullName());
-
+        
     transaction.commit();
   }
 }
@@ -197,19 +199,20 @@ void findByIdOneAuthor() {
 void findByIdTwoAuthors() {
   try (Session session = HibernateUtil.getSessionFactory().openSession()) {
     Transaction transaction = session.beginTransaction();
-
+        
     Book eip = session.find(Book.class, this.eip.getId());
     assertThat(eip.getTitle()).isEqualTo(this.eip.getTitle());
 // The following line results in exception
-// because the actual eip.authors contains duplicates: ["Gregor Hohpe", "Gregor Hohpe", "Bobby Woolf", "Bobby Woolf"]
+// because the actual eip.authors contains duplicates: [&quot;Gregor Hohpe&quot;, &quot;Gregor Hohpe&quot;, &quot;Bobby Woolf&quot;, &quot;Bobby Woolf&quot;]
     assertThatHasAuthors(eip, gregorHohpe.getFullName(), bobbyWoolf.getFullName());
-
+        
     transaction.commit();
   }
 }
 </code></pre>
-<p>See the test <a href="src/test/java/com/example/hibernate/BookFetchModeJoinWithSetTests.java" rel="noopener noreferrer" target="_blank"><code>com.example.hibernate.BookFetchModeJoinWithSetTests</code></a>.</p>
+<p>See the test <a href="src/test/java/com/example/hibernate/BookFetchModeJoinWithSetTests.java"><code>com.example.hibernate.BookFetchModeJoinWithSetTests</code></a>.</p>
 <p>There are no duplicates in <code>List&lt;Author&gt; authors</code> when <code>Set&lt;Category&gt; categories</code> has size 1.</p>
+
 </div>
     </div>
   </section>

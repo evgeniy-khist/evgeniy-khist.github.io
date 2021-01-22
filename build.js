@@ -3,14 +3,12 @@
   const glob = require("glob");
   const camelCase = require('camelcase');
   const Handlebars = require('handlebars');
-  const showdown = require('showdown');
+  const md = require('markdown-it')({
+    html: true,
+    linkify: true
+  });
   const axios = require('axios');
   const moment = require('moment');
-
-  showdown.setOption('simplifiedAutoLink', 'true');
-  showdown.setOption('tables', 'true');
-  showdown.setOption('openLinksInNewWindow', 'true');
-  const converter = new showdown.Converter();
 
   function registerPartialFromFile(name) {
     console.log('Registering Handlebars partial', name);
@@ -34,7 +32,7 @@
   function renderMarkdown(markdownFile) {
     console.log('Rendering a Markdown ', markdownFile);
     const markdown = fs.readFileSync(markdownFile, 'utf8');
-    return converter.makeHtml(markdown);
+    return md.render(markdown);
   }
 
   function renderProjectTempate(templatePath, context) {

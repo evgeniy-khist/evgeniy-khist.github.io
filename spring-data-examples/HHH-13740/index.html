@@ -57,6 +57,8 @@
           <div class="navbar-dropdown">
               <a class="navbar-item" href="/spring-data-examples/">
                 Spring Data JPA pitfalls and modern alternatives: Spring Data JDBC and Spring Data R2DBC
+              </a>              <a class="navbar-item" href="/postgresql-performance-essentials/">
+                PostgreSQL Performance Essentials in 1 Hour
               </a>              <a class="navbar-item" href="/geohash-example/">
                 Rents Map - Geohash Example
               </a>              <a class="navbar-item" href="/pairwise-comparison/">
@@ -104,15 +106,16 @@
 </div>
 
 <div class="content">
-<h1 id="hhh13740problemwithduplicateswhenfetchingmultiplemanytomanyrelationswithhibernatefetchmodejoin">HHH-13740 - Problem with duplicates when fetching multiple many-to-many relations with Hibernate FetchMode.JOIN</h1>
-<p><a href="https://hibernate.atlassian.net/browse/HHH-13740" rel="noopener noreferrer" target="_blank">HHH-13740</a> is an issue with duplicates, when multiple child collections are fetched using <code>JOIN</code>.</p>
+<h1>HHH-13740 - Problem with duplicates when fetching multiple many-to-many relations with Hibernate FetchMode.JOIN</h1>
+<p><a href="https://hibernate.atlassian.net/browse/HHH-13740">HHH-13740</a> is an issue with duplicates, when multiple child collections are fetched using <code>JOIN</code>.</p>
 <p>When entity has multiple many-to-many relations with <code>FetchMode.JOIN</code> (one of type <code>List</code> and others of type <code>Set</code>), searching for such entity Hibernate returns a result with a child relation of type <code>List</code> containing duplicates.</p>
 <p>The bug can be reproduced on Hibernate 5.4.12.Final and OpenJDK 11.0.6 using both plain Hibernate API and Spring Data JPA 2.2.6.RELEASE.</p>
 <p>The detailed description of the problem is available in the samples:</p>
 <ul>
-<li><a href="hibernate-HHH-13740/" rel="noopener noreferrer" target="_blank">HHH-13740 plain Hibernate sample</a></li>
-<li><a href="spring-data-jpa-HHH-13740/" rel="noopener noreferrer" target="_blank">HHH-13740 Spring Data JPA sample</a></li>
+<li><a href="hibernate-HHH-13740/">HHH-13740 plain Hibernate sample</a></li>
+<li><a href="spring-data-jpa-HHH-13740/">HHH-13740 Spring Data JPA sample</a></li>
 </ul>
+
 </div>
     </div>
   </section>

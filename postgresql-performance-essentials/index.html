@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PostgreSQL Performance Essentials in 1 Hour</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css" />
+  <link rel="stylesheet" href="/css/prism.min.css" />
+
+  <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+  <script async defer src="https://buttons.github.io/buttons.js"></script>
+  <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+    integrity="sha256-pasqAKBDmFT4eHoN2ndd6lN370kFiGUFyTiUHWhU7k8=" crossorigin="anonymous"></script>
+    
+  <script>
+    $(document).ready(function () {
+      $(".navbar-burger").click(function () {
+        $(".navbar-burger").toggleClass("is-active");
+        $(".navbar-menu").toggleClass("is-active");
+      });
+    });
+  </script>
+</head>
+
+<body>
+  <nav class="navbar is-light" role="navigation" aria-label="main navigation">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://github.com/evgeniy-khist" target="_blank">
+        <span class="tag is-link is-medium">
+          <span class="icon">
+            <i class="fab fa-github"></i>
+          </span>
+          <span> evgeniy-khist</span>
+        </span>
+      </a>
+
+      <a role="button" class="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="navMenu">
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+      </a>
+    </div>
+
+    <div id="navMenu" class="navbar-menu">
+      <div class="navbar-start">
+        <a class="navbar-item" href="/">
+          Home
+        </a>
+
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link">
+            Projects
+          </a>
+
+          <div class="navbar-dropdown">
+              <a class="navbar-item" href="/spring-data-examples/">
+                Spring Data JPA pitfalls and modern alternatives: Spring Data JDBC and Spring Data R2DBC
+              </a>              <a class="navbar-item" href="/postgresql-performance-essentials/">
+                PostgreSQL Performance Essentials in 1 Hour
+              </a>              <a class="navbar-item" href="/geohash-example/">
+                Rents Map - Geohash Example
+              </a>              <a class="navbar-item" href="/pairwise-comparison/">
+                Pairwise Comparison Method
+              </a>              <a class="navbar-item" href="/letsencrypt-docker-compose/">
+                Nginx and Let’s Encrypt with Docker Compose in less than 3 minutes
+              </a>          </div>
+        </div>
+      </div>
+
+      <div class="navbar-end">
+        <div class="navbar-item">
+          <a class="github-button" href="https://github.com/evgeniy-khist" data-size="large" data-show-count="true"
+            aria-label="Follow @evgeniy-khist on GitHub">Follow @evgeniy-khist</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero is-light">
+    <div class="hero-body">
+      <div class="container">
+        <h1 class="title">
+          Evgeniy Khyst's Tech Blog
+        </h1>
+        <h2 class="subtitle">
+          Samples and articles
+        </h2>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+<div class="columns">
+  <div class="column">
+    <a class="github-button" href="https://github.com/evgeniy-khist/postgresql-performance-essentials" data-icon="octicon-star"
+      data-size="large" data-show-count="true" aria-label="Star evgeniy-khist/postgresql-performance-essentials on GitHub">Star</a>
+    <a class="github-button" href="https://github.com/evgeniy-khist/postgresql-performance-essentials/fork" data-icon="octicon-repo-forked"
+      data-size="large" data-show-count="true" aria-label="Fork evgeniy-khist/postgresql-performance-essentials on GitHub">Fork</a>
+  </div>
+  <div class="column has-text-right has-text-grey">
+    <time datetime="2021-01-22">22 Jan 2021</time>
+  </div>
+</div>
+
+<div class="content">
+<h1>PostgreSQL Performance Essentials in 1 Hour</h1>
+<ul>
+<li><a href="#31bb545671c6f28bf4d0c32e9ff42e10">Run PostgreSQL and pgAdmin</a></li>
+<li><a href="#46c030b410d17f0142ec5c684020c12b">Create sample schema with data</a></li>
+<li><a href="#d3f45a1dbf52313215de2d72335b08c9">Query plan</a></li>
+<li><a href="#5077602cb415acf28d7b838fd00c4c86">Seq Scan</a></li>
+<li><a href="#8ab5ea27dde1f77a2a3059f626b52ca5">Index selectivity</a></li>
+<li><a href="#a4a9f6a9d3e60a151754f45f91f5978c">B-Tree indexes</a>
+<ul>
+<li><a href="#9e0a689058c255f7dbc8a3303cec18a8">Index Scan</a></li>
+<li><a href="#0aca2dd64d94c0de22b10b1249f3d461">Bitmap Scans</a></li>
+</ul>
+</li>
+<li><a href="#063cd14ca3da4c69df873907b8cd09f2">Multicolumn indexes</a>
+<ul>
+<li><a href="#0bc6a1f1a4c2655e1ad0f09702ca813d">Index Only Scan</a></li>
+</ul>
+</li>
+<li><a href="#e0b12e6f9f94a86f5c585a73a7824d4a">Unique indexes</a></li>
+<li><a href="#a9961238a26d752aadf86e48184eef90">Partial indexes</a></li>
+<li><a href="#41e31e7b92b335c5f475794040a589a4">Expression indexes</a></li>
+<li><a href="#1d7f7e5f39be8319be61e0509a9e0090">GIN indexes</a></li>
+<li><a href="#c39d79c0c6f99d7ff585ac9408522a22">Hash indexes</a></li>
+<li><a href="#9604d17d77116450f47e7f7d7cb37c58">Create indexes on foreign keys</a></li>
+<li><a href="#7fc107be8e1d492f8fc88bec58ff7740">Use more joins</a></li>
+<li><a href="#76ccb0862b9d9d30188b32c852396b28">Don't over-index</a></li>
+<li><a href="#2b1d46eeefdef5de7e4b4d5ce62849c4">Keep statistics updated</a></li>
+<li><a href="#8f264ba3b501b66608e02c8c5efc2c58">Detect slow queries</a></li>
+<li><a href="#ae39d16394b02eaba62f114a8d4231b2">Cluster a table according to an index</a></li>
+<li><a href="#88bb68b618474d18c73e4ada7256cfd9">Use table partitioning</a></li>
+</ul>
+<p>This example covers the most important topics related to PostgreSQL performance.</p>
+<h2><a name="31bb545671c6f28bf4d0c32e9ff42e10"></a>Run PostgreSQL and pgAdmin</h2>
+<ol>
+<li>
+<p>Make sure Docker and Docker Compose are installed and up to date</p>
+</li>
+<li>
+<p>Run <code>docker-compose up -d</code>, wait for it to initialize completely</p>
+</li>
+<li>
+<p>Login to pgAdmin 4 at <code>http://localhost:8080</code> as <code>admin@example.com/s3cr3t</code></p>
+</li>
+<li>
+<p>Connect to <code>Local PostgreqSQL</code> as <code>admin/s3cr3t</code></p>
+</li>
+</ol>
+<h2><a name="46c030b410d17f0142ec5c684020c12b"></a>Create sample schema with data</h2>
+<p><img src="img/tables.png" alt="ER-diagram"></p>
+<ol>
+<li>
+<p>Create schema by executing DDL statements from <a href="schema.sql"><code>schema.sql</code></a></p>
+</li>
+<li>
+<p>Create test data by executing DML statements from <a href="data.sql"><code>data.sql</code></a></p>
+</li>
+<li>
+<p>Generate more test data</p>
+<pre><code class="language-sql">INSERT INTO book (isbn, title, publication_date, rating)
+SELECT SUBSTR(MD5(RANDOM()::TEXT), 0, 14), 
+       MD5(RANDOM()::TEXT), 
+       DATE '2010-01-01' + CAST(RANDOM() * (DATE '2020-01-01' - DATE '2010-01-01') AS INT),
+       ROUND((1 + RANDOM() * 4)::numeric, 3)
+  FROM generate_series(1, 100000);
+</code></pre>
+</li>
+</ol>
+<hr>
+<ul>
+<li><a href="https://www.postgresql.org/docs/13/functions-srf.html">https://www.postgresql.org/docs/13/functions-srf.html</a></li>
+</ul>
+<h2><a name="d3f45a1dbf52313215de2d72335b08c9"></a>Query plan</h2>
+<p>PostgreSQL has <em>planner/optimizer</em> that creates an optimal execution plan.</p>
+<p>To understand how to optimize an SQL query we need to know its execution plan.</p>
+<p><code>EXPLAIN ANALYZE</code> followed by <code>SELECT ...</code>, <code>UPDATE ...</code>, or <code>DELETE ...</code>,
+executes the statement and provides a query plan with details about the execution.</p>
+<pre><code class="language-sql">EXPLAIN ANALYZE
+SELECT * FROM book;
+</code></pre>
+<pre><code>QUERY PLAN
+----------
+&quot;Seq Scan on book  (cost=0.00..3667.07 rows=100007 width=89) (actual time=0.003..6.143 rows=100007 loops=1)&quot;
+&quot;Planning Time: 0.100 ms&quot;
+&quot;Execution Time: 8.622 ms&quot;
+</code></pre>
+<p>A query plan shows what type of scanning was used for the query:</p>
+<ul>
+<li>Seq Scan</li>
+<li>Bitmap Index Scan and Bitmap Heap Scan</li>
+<li>Index Scan</li>
+<li>Index Only Scan</li>
+</ul>
+<p>To display a query plan as a diagram with an additional information in pgAdmin 4 use <code>EXPLAIN (ANALYZE, COSTS, VERBOSE, BUFFERS, FORMAT JSON)</code>.</p>
+<hr>
+<ul>
+<li><a href="https://www.postgresql.org/docs/13/planner-optimizer.html">https://www.postgresql.org/docs/13/planner-optimizer.html</a></li>
+<li><a href="https://www.postgresql.org/docs/13/sql-explain.html">https://www.postgresql.org/docs/13/sql-explain.html</a></li>
+</ul>
+<h2><a name="5077602cb415acf28d7b838fd00c4c86"></a>Seq Scan</h2>
+<p>Seq Scan is a full table scan and always reads everything in the table.
+It scans through every page of data sequentially.</p>
+<ol>
+<li>
+<p>Seq Scan is efficient when a large proportion of the table is retrieved from the table</p>
+<pre><code class="language-sql">EXPLAIN ANALYZE
+SELECT b.isbn, 
+       b.title,
+       b.publication_date,
+       b.rating
+  FROM book b
+</code></pre>
+<pre><code>QUERY PLAN
+----------
+&quot;Seq Scan on book b  (cost=0.00..3667.07 rows=100007 width=57) (actual time=0.008..13.369 rows=100007 loops=1)&quot;
+&quot;Planning Time: 0.035 ms&quot;
+&quot;Execution Time: 15.806 ms&quot;
+</code></pre>
+</li>
+<li>
+<p>Seq Scan can filter rows while reading them</p>
+<pre><code class="language-sql">EXPLAIN ANALYZE
+SELECT b.isbn, 
+       b.title,
+       b.publication_date,
+       b.rating
+  FROM book b
+ WHERE b.publication_date = '1994-11-10';
+</code></pre>
+<pre><code>QUERY PLAN
+----------
+&quot;Seq Scan on book b  (cost=0.00..3917.09 rows=27 width=57) (actual time=0.008..8.575 rows=1 loops=1)&quot;
+&quot;  Filter: (publication_date = '1994-11-10'::date)&quot;
+&quot;  Rows Removed by Filter: 100006&quot;
+&quot;Planning Time: 0.056 ms&quot;
+&quot;Execution Time: 8.592 ms&quot;
+</code></pre>
+</li>
+<li>
+<p>When a small number of rows is returned by the query a scan that uses index is more efficient.
+If there in no suitable index for the query, Seq Scan is the only available option.</p>
+<p>Create indexes if often less than 15% of the table's rows are going to be retrieved.</p>
+</li>
+<li>
+<p>Reset statistics counters to zeros</p>
+<pre><code class="language-sql">SELECT pg_stat_reset();
+</code></pre>
+</li>
+<li>
+<p>Let the system work for some time after resetting statistics.</p>
+</li>
+<li>
+<p>Get the suggestion what tables need an index by looking at <code>seq_scan</code> and <code>seq_tup_read</code>. These columns show what tables were used in sequential scans</p>
+<pre><code class="language-sql">SELECT schemaname,
+       relname as table_name,
+       seq_scan, -- Number of sequential scans initiated on this table
+       seq_tup_read, -- Number of live rows fetched by sequential scans
+       idx_scan, -- Number of index scans initiated on this table
+       idx_tup_fetch -- Number of live rows fetched by index scans
+  FROM pg_stat_user_tables
+ WHERE seq_scan &gt; 0
+ ORDER BY seq_tup_read DESC;
+</code></pre>
+</li>
+</ol>
+<h2><a name="8ab5ea27dde1f77a2a3059f626b52ca5"></a>Index selectivity</h2>
+<p>The number of distinct values in the indexed column divided by the number of records in the table is called a selectivity of an index.</p>
+<p>Selectivity is one of factors influencing type of scanning the planner/optimezer will use for a query (Index Scan or Bitmap Index Scan).</p>
+<ol>
+<li>Calculate the selectivity of the single column indexes you want to create<pre><code class="language-sql">SELECT ROUND(COUNT(DISTINCT rating)::NUMERIC / COUNT(*), 2) AS selectivity
+  FROM BOOK;
+</code></pre>
+<pre><code>selectivity
+-----------
+0.04
+</code></pre>
+<pre><code class="language-sql">SELECT ROUND(COUNT(DISTINCT publication_date)::NUMERIC / count(*), 2) AS selectivity
+  FROM BOOK;
+</code></pre>
+<pre><code>selectivity
+-----------
+0.04
+</code></pre>
+</li>
+<li>The best selectivity is 1. Only unique indexes on NOT NULL columns <em>guaranteed</em> to have such selectivity.<pre><code class="language-sql">SELECT ROUND(COUNT(DISTINCT isbn)::NUMERIC / COUNT(*), 2) AS idx_selectivity
+  FROM BOOK;
+</code></pre>
+<pre><code>selectivity
+-----------
+1
+</code></pre>
+</li>
+</ol>
+<p>Prefer indexing columns with selectivity greater than &gt; 0.85.</p>
+<h2><a name="a4a9f6a9d3e60a151754f45f91f5978c"></a>B-Tree indexes</h2>
+<h3><a name="9e0a689058c255f7dbc8a3303cec18a8"></a>Index Scan</h3>
+<p>Index Scan uses an index to find rows matching a predicate.
+It finds each row in the index and then reads the actual data from the table.</p>
+<ol>
+<li>
+<p>Create a single column B-Tree index</p>
+<pre><code class="language-sql">CREATE INDEX idx_book_title ON book (title);
+</code></pre>
+</li>
+<li>
+<p>Execute the query</p>
+<pre><code class="language-sql">EXPLAIN ANALYZE
+SELECT b.isbn, 
+       b.title,
+       b.publication_date,
+       b.rating
+  FROM book b
+ WHERE b.title = 'Patterns of Enterprise Application Architecture';
+</code></pre>
+<pre><code>QUERY PLAN
+----------
+&quot;Index Scan using idx_book_title on book b  (cost=0.42..8.44 rows=1 width=57) (actual time=0.195..0.197 rows=1 loops=1)&quot;
+&quot;  Index Cond: ((title)::text = 'Patterns of Enterprise Application Architecture'::text)&quot;
+&quot;Planning Time: 0.340 ms&quot;
+&quot;Execution Time: 0.209 ms&quot;
+</code></pre>
+</li>
+<li>
+<p>Index Scan was used because index <code>idx_book_title</code> has good selectivity (1).</p>
+</li>
+<li>
+<p>If there is an additional predicate in the query (unindexed columns), the Index Scan can filter rows while reading them, just like a sequential scan</p>
+<pre><code class="language-sql">EXPLAIN ANALYZE
+SELECT b.isbn, 
+       b.title,
+       b.publication_date,
+       b.rating
+  FROM book b
+ WHERE b.title = 'Patterns of Enterprise Application Architecture'
+   AND b.rating &gt; 4.5; --unindexed column
+</code></pre>
+<pre><code>QUERY PLAN
+----------
+&quot;Index Scan using idx_book_title on book b  (cost=0.42..8.44 rows=1 width=57) (actual time=0.013..0.013 rows=0 loops=1)&quot;
+&quot;  Index Cond: ((title)::text = 'Patterns of Enterprise Application Architecture'::text)&quot;
+&quot;  Filter: (rating &gt; 4.5)&quot;
+&quot;  Rows Removed by Filter: 1&quot;
+&quot;Planning Time: 0.303 ms&quot;
+&quot;Execution Time: 0.026 ms&quot;
+</code></pre>
+</li>
+<li>
+<p>Postgres will switch to a Seq Scan instead Index Scan when a large proportion of the table (approximately more than 15% of the table's rows) is retrieved from the table (not selective predicate).</p>
+<pre><code class="language-sql">EXPLAIN ANALYZE
+SELECT b.isbn, 
+       b.title,
+       b.publication_date,
+       b.rating
+  FROM book b
+ WHERE b.publication_date &gt; '2012-01-01';
+</code></pre>
+<pre><code>QUERY PLAN
+----------
+&quot;Seq Scan on book b  (cost=0.00..3917.09 rows=80034 width=57) (actual time=0.012..16.944 rows=79900 loops=1)&quot;
+&quot;  Filter: (publication_date &gt; '2012-01-01'::date)&quot;
+&quot;  Rows Removed by Filter: 20107&quot;
+&quot;Planning Time: 0.204 ms&quot;
+&quot;Execution Time: 19.364 ms&quot;
+</code></pre>
+</li>
+</ol>
+<h3><a name="0aca2dd64d94c0de22b10b1249f3d461"></a>Bitmap Scans</h3>
+<p>If index selectivity is bad (approximately less than &lt; 0.85),
+the planner/optimizer will use Bitmap Scan instead of Index Scan.</p>
+<p>Bitmap Scan is in the middle between a Seq Scan and an Index Scan.
+It is useful when you need a lot of rows from a table and these rows are located in different pages (blocks).</p>
+<p>Bitmap Scans always consists of minimum 2 nodes.
+There is Bitmap Index Scan at the bottom and then Bitmap Heap Scan.</p>
+<ol>
+<li>
+<p>Create index on  acolumns with bad selectivity</p>
+<pre><code class="language-sql">CREATE INDEX idx_book_pub_date ON book (publication_date);
+</code></pre>
+</li>
+<li>
+<p>Execute the query</p>
+<pre><code class="language-sql">EXPLAIN ANALYZE
+SELECT b.isbn, 
+       b.title,
+       b.publication_date,
+       b.rating
+  FROM book b
+ WHERE b.publication_date &gt; '2019-01-01';
+</code></pre>
+<pre><code>QUERY PLAN
+----------
+&quot;Bitmap Heap Scan on book b  (cost=116.61..2906.71 rows=9848 width=57) (actual time=1.485..5.062 rows=9869 loops=1)&quot;
+&quot;  Recheck Cond: (publication_date &gt; '2019-01-01'::date)&quot;
+&quot;  Heap Blocks: exact=1334&quot;
+&quot;  -&gt;  Bitmap Index Scan on idx_book_pub_date  (cost=0.00..114.15 rows=9848 width=0) (actual time=1.324..1.326 rows=9869 loops=1)&quot;
+&quot;        Index Cond: (publication_date &gt; '2019-01-01'::date)&quot;
+&quot;Planning Time: 0.409 ms&quot;
+&quot;Execution Time: 5.430 ms&quot;
+</code></pre>
+</li>
+<li>
+<p>Bitmap Scan was used because index <code>idx_book_pub_date</code> has bad selectivity (0.04) and thus the query returns a lot of rows.</p>
+</li>
+<li>
+<p>Bitmap scans are capable of combining multiple indexes using bitmap AND (&amp;) and OR (|).</p>
+<pre><code class="language-sql">CREATE INDEX idx_book_rating ON book (rating);
+</code></pre>
+<pre><code class="language-sql">EXPLAIN ANALYZE
+SELECT b.isbn, 
+       b.title,
+       b.publication_date,
+       b.rating
+  FROM book b
+ WHERE b.publication_date &gt; '2019-01-01'
+   AND b.rating &gt; 4.9;
+</code></pre>
+<pre><code>QUERY PLAN
+----------
+&quot;Bitmap Heap Scan on book b  (cost=166.48..927.55 rows=256 width=57) (actual time=0.537..0.858 rows=253 loops=1)&quot;
+&quot;  Recheck Cond: ((rating &gt; 4.9) AND (publication_date &gt; '2019-01-01'::date))&quot;
+&quot;  Heap Blocks: exact=232&quot;
+&quot;  -&gt;  BitmapAnd  (cost=166.48..166.48 rows=256 width=0) (actual time=0.515..0.515 rows=0 loops=1)&quot;
+&quot;        -&gt;  Bitmap Index Scan on idx_book_rating  (cost=0.00..51.95 rows=2604 width=0) (actual time=0.194..0.194 rows=2547 loops=1)&quot;
+&quot;              Index Cond: (rating &gt; 4.9)&quot;
+&quot;        -&gt;  Bitmap Index Scan on idx_book_pub_date  (cost=0.00..114.15 rows=9848 width=0) (actual time=0.281..0.281 rows=9869 loops=1)&quot;
+&quot;              Index Cond: (publication_date &gt; '2019-01-01'::date)&quot;
+&quot;Planning Time: 0.074 ms&quot;
+&quot;Execution Time: 0.881 ms&quot;
+</code></pre>
+</li>
+</ol>
+<h2><a name="063cd14ca3da4c69df873907b8cd09f2"></a>Multicolumn indexes</h2>
+<ol>
+<li>
+<p>Sometimes two or more columns with poor selectivity can be combined to form a multicolumn index with good selectivity</p>
+<pre><code class="language-sql">SELECT ROUND((
+  SELECT COUNT(*) AS count_distinct FROM (
+    SELECT DISTINCT publication_date, rating FROM book
+  ) AS t)::NUMERIC / COUNT(*), 2) AS selectivity
+FROM book;
+</code></pre>
+<pre><code>selectivity
+-----------
+1.00
+</code></pre>
+</li>
+<li>
+<p>Drop the single column indexes</p>
+<pre><code class="language-sql">DROP INDEX idx_book_pub_date, 
+           idx_book_rating;
+</code></pre>
+</li>
+<li>
+<p>Create a multicolumn index</p>
+<pre><code class="language-sql">CREATE INDEX idx_book_pub_date_rating ON book (publication_date, rating);
+</code></pre>
+</li>
+<li>
+<p>Execute the query</p>
+<pre><code class="language-sql">EXPLAIN ANALYZE
+SELECT b.isbn, 
+       b.title,
+       b.publication_date,
+       b.rating
+  FROM book b
+ WHERE b.publication_date &gt; '2019-01-01'
+   AND b.rating &gt; 4.9;
+</code></pre>
+<pre><code>QUERY PLAN
+----------
+&quot;Bitmap Heap Scan on book b  (cost=254.96..1016.03 rows=256 width=57) (actual time=0.658..0.896 rows=253 loops=1)&quot;
+&quot;  Recheck Cond: ((publication_date &gt; '2019-01-01'::date) AND (rating &gt; 4.9))&quot;
+&quot;  Heap Blocks: exact=232&quot;
+&quot;  -&gt;  Bitmap Index Scan on idx_book_pub_date_rating  (cost=0.00..254.90 rows=256 width=0) (actual time=0.592..0.592 rows=253 loops=1)&quot;
+&quot;        Index Cond: ((publication_date &gt; '2019-01-01'::date) AND (rating &gt; 4.9))&quot;
+&quot;Planning Time: 0.074 ms&quot;
+&quot;Execution Time: 0.922 ms&quot;
+</code></pre>
+</li>
+<li>
+<p>The order of predicates in a query is not important. The planner/optimizer will use the index <code>idx_book_pub_date_rating</code> for both <code>WHERE b.publication_date &gt; $1 AND b.rating &gt; $2</code> and <code>WHERE b.rating &gt; $2 AND b.publication_date &gt; $1</code></p>
+<pre><code class="language-sql">EXPLAIN ANALYZE
+SELECT b.isbn, 
+       b.title,
+       b.publication_date,
+       b.rating
+  FROM book b
+ WHERE b.rating &gt; 4.9
+   AND b.publication_date &gt; '2019-01-01';
+</code></pre>
+<pre><code>QUERY PLAN
+----------
+&quot;Bitmap Heap Scan on book b  (cost=254.96..1016.03 rows=256 width=57) (actual time=0.732..1.010 rows=253 loops=1)&quot;
+&quot;  Recheck Cond: ((publication_date &gt; '2019-01-01'::date) AND (rating &gt; 4.9))&quot;
+&quot;  Heap Blocks: exact=232&quot;
+&quot;  -&gt;  Bitmap Index Scan on idx_book_pub_date_rating  (cost=0.00..254.90 rows=256 width=0) (actual time=0.694..0.694 rows=253 loops=1)&quot;
+&quot;        Index Cond: ((publication_date &gt; '2019-01-01'::date) AND (rating &gt; 4.9))&quot;
+&quot;Planning Time: 0.102 ms&quot;
+&quot;Execution Time: 1.044 ms&quot;
+</code></pre>
+</li>
+<li>
+<p>The multicolumn index will be also used in queries referencing only the left part of the indexed columns in the <code>WHERE</code> clause, e.g. <code>WHERE b.publication_date &gt; $1</code></p>
+<pre><code class="language-sql">EXPLAIN ANALYZE
+SELECT b.isbn, 
+       b.title,
+       b.publication_date,
+       b.rating
+  FROM book b
+ WHERE b.publication_date &gt; '2019-01-01';
+</code></pre>
+<pre><code>QUERY PLAN
+----------
+&quot;Bitmap Heap Scan on book b  (cost=232.74..3022.84 rows=9848 width=57) (actual time=0.592..4.204 rows=9869 loops=1)&quot;
+&quot;  Recheck Cond: (publication_date &gt; '2019-01-01'::date)&quot;
+&quot;  Heap Blocks: exact=1334&quot;
+&quot;  -&gt;  Bitmap Index Scan on idx_book_pub_date_rating  (cost=0.00..230.28 rows=9848 width=0) (actual time=0.461..0.462 rows=9869 loops=1)&quot;
+&quot;        Index Cond: (publication_date &gt; '2019-01-01'::date)&quot;
+&quot;Planning Time: 0.054 ms&quot;
+&quot;Execution Time: 4.449 ms&quot;
+</code></pre>
+</li>
+<li>
+<p>However, the multicolumn index will <em>not</em> be used in queries referencing only the right part of the indexed columns in the <code>WHERE</code> clause, e.g. <code>WHERE b.rating &gt; 4</code></p>
+<pre><code class="language-sql">EXPLAIN ANALYZE
+SELECT b.isbn, 
+       b.title,
+       b.publication_date,
+       b.rating
+  FROM book b
+ WHERE b.rating &gt; 4;
+</code></pre>
+<pre><code>QUERY PLAN
+----------
+&quot;Seq Scan on book b  (cost=0.00..3917.09 rows=24873 width=57) (actual time=0.011..21.136 rows=24998 loops=1)&quot;
+&quot;  Filter: (rating &gt; '4'::numeric)&quot;
+&quot;  Rows Removed by Filter: 75009&quot;
+&quot;Planning Time: 0.118 ms&quot;
+&quot;Execution Time: 21.976 ms&quot;
+</code></pre>
+</li>
+<li>
+<p>The multicolumn index will <em>not</em> be used in queries where predicates are combined with <code>OR</code></p>
+<pre><code class="language-sql">EXPLAIN ANALYZE
+SELECT b.isbn, 
+       b.title,
+       b.publication_date,
+       b.rating
+  FROM book b
+ WHERE b.rating &gt; 4.9
+    OR b.publication_date &gt; '2019-01-01';
+</code></pre>
+<pre><code>QUERY PLAN
+----------
+&quot;Seq Scan on book b  (cost=0.00..4167.10 rows=12196 width=57) (actual time=0.752..15.237 rows=12163 loops=1)&quot;
+&quot;  Filter: ((rating &gt; 4.9) OR (publication_date &gt; '2019-01-01'::date))&quot;
+&quot;  Rows Removed by Filter: 87844&quot;
+&quot;Planning Time: 0.067 ms&quot;
+&quot;Execution Time: 15.564 ms&quot;
+</code></pre>
+</li>
+</ol>
+<h3><a name="0bc6a1f1a4c2655e1ad0f09702ca813d"></a>Index Only Scan</h3>
+<p><a href="https://www.postgresql.org/docs/current/indexes-index-only-scans.html">Index Only Scan</a> fetches data directly from the index without reading the table data entirely.</p>
+<p>Index Only Scan is the most efficient type of scanning.</p>
+<p>To use Index Only Scan the query must select only columns included in the index</p>
+<pre><code class="language-sql">EXPLAIN ANALYZE
+SELECT b.publication_date,
+       b.rating
+  FROM book b
+ WHERE b.publication_date = '1994-11-10';
+</code></pre>
+<pre><code>QUERY PLAN
+----------
+&quot;Index Only Scan using idx_book_pub_date_rating on book b  (cost=0.42..4.89 rows=27 width=10) (actual time=0.383..0.386 rows=1 loops=1)&quot;
+&quot;  Index Cond: (publication_date = '1994-11-10'::date)&quot;
+&quot;  Heap Fetches: 0&quot;
+&quot;Planning Time: 0.186 ms&quot;
+&quot;Execution Time: 0.472 ms&quot;
+</code></pre>
+<h2><a name="e0b12e6f9f94a86f5c585a73a7824d4a"></a>Unique indexes</h2>
+<p>A unique index guarantees that the table column values won't have duplicates.</p>
+<p>Manually unique index can be defined as</p>
+<pre><code class="language-sql">CREATE UNIQUE INDEX book_isbn_key ON book (isbn);
+</code></pre>
+<p>PostgreSQL automatically creates a unique index when a unique constraint or primary key is defined for a table.</p>
+<p>The column <code>isbn</code> of the <code>book</code> tables has unique constrained (<code>isbn VARCHAR(14) UNIQUE</code>), so the planner/optimezer will use automatically created unique index <code>book_isbn_key</code> for the query</p>
+<pre><code class="language-sql">EXPLAIN ANALYZE
+SELECT b.isbn, 
+       b.title,
+       b.publication_date,
+       b.rating
+  FROM book b
+ WHERE b.isbn = '978-1449373320';
+</code></pre>
+<pre><code>QUERY PLAN
+----------
+&quot;Index Scan using book_isbn_key on book b  (cost=0.42..8.44 rows=1 width=57) (actual time=0.111..0.111 rows=1 loops=1)&quot;
+&quot;  Index Cond: ((isbn)::text = '978-1449373320'::text)&quot;
+&quot;Planning Time: 0.063 ms&quot;
+&quot;Execution Time: 0.124 ms&quot;
+</code></pre>
+<hr>
+<ul>
+<li><a href="https://www.postgresql.org/docs/13/indexes-unique.html">https://www.postgresql.org/docs/13/indexes-unique.html</a></li>
+</ul>
+<h2><a name="a9961238a26d752aadf86e48184eef90"></a>Partial indexes</h2>
+<p>A partial index is an index with a <code>WHERE</code> clause.</p>
+<p>Only rows matching the supplied predicated are indexed.
+Use partial indexes to exclude rows from an index that are not likely to be queried.</p>
+<ol>
+<li>
+<p>Create the partial index</p>
+<pre><code class="language-sql">CREATE INDEX idx_book_pub_date_rating_part on book (publication_date) WHERE rating &gt; 4;
+</code></pre>
+</li>
+<li>
+<p>The partial index will be used by queries with predicate <code>b.rating &gt; 4</code> like</p>
+<pre><code class="language-sql">EXPLAIN ANALYZE
+SELECT b.isbn, 
+       b.title,
+       b.publication_date,
+       b.rating
+  FROM book b
+ WHERE b.publication_date &gt; '2019-01-01'
+   AND b.rating &gt; 4;
+</code></pre>
+<pre><code>QUERY PLAN
+----------
+&quot;Bitmap Heap Scan on book b  (cost=35.27..2791.45 rows=2449 width=57) (actual time=0.268..1.500 rows=2436 loops=1)&quot;
+&quot;  Recheck Cond: ((publication_date &gt; '2019-01-01'::date) AND (rating &gt; '4'::numeric))&quot;
+&quot;  Heap Blocks: exact=1130&quot;
+&quot;  -&gt;  Bitmap Index Scan on idx_book_pub_date_rating_part  (cost=0.00..34.66 rows=2449 width=0) (actual time=0.166..0.166 rows=2436 loops=1)&quot;
+&quot;        Index Cond: (publication_date &gt; '2019-01-01'::date)&quot;
+&quot;Planning Time: 0.128 ms&quot;
+&quot;Execution Time: 1.574 ms&quot;
+</code></pre>
+</li>
+<li>
+<p>The partial index will <em>not</em> be used by queries with predicate <code>b.rating &gt; $1</code> and <code>$1 != 4</code> like</p>
+<pre><code class="language-sql">EXPLAIN ANALYZE
+SELECT b.isbn, 
+       b.title,
+       b.publication_date,
+       b.rating
+  FROM book b
+ WHERE b.publication_date &gt; '2019-01-01'
+   AND b.rating &gt; 3;
+</code></pre>
+<pre><code>QUERY PLAN
+----------
+&quot;Bitmap Heap Scan on book b  (cost=115.39..2930.11 rows=4953 width=57) (actual time=0.557..4.687 rows=4979 loops=1)&quot;
+&quot;  Recheck Cond: (publication_date &gt; '2019-01-01'::date)&quot;
+&quot;  Filter: (rating &gt; '3'::numeric)&quot;
+&quot;  Rows Removed by Filter: 4890&quot;
+&quot;  Heap Blocks: exact=1334&quot;
+&quot;  -&gt;  Bitmap Index Scan on idx_book_pub_date  (cost=0.00..114.15 rows=9848 width=0) (actual time=0.410..0.411 rows=9869 loops=1)&quot;
+&quot;        Index Cond: (publication_date &gt; '2019-01-01'::date)&quot;
+&quot;Planning Time: 0.106 ms&quot;
+&quot;Execution Time: 4.857 ms&quot;
+</code></pre>
+</li>
+</ol>
+<hr>
+<ul>
+<li><a href="https://www.postgresql.org/docs/13/indexes-partial.html">https://www.postgresql.org/docs/13/indexes-partial.html</a></li>
+</ul>
+<h2><a name="41e31e7b92b335c5f475794040a589a4"></a>Expression indexes</h2>
+<p>Expression indexes are useful for queries using function in the <code>WHERE</code> clause.</p>
+<ol>
+<li>
+<p>Sequential scan is used foth the query that match on <code>LOWER</code> function (lowercase)</p>
+<pre><code class="language-sql">EXPLAIN ANALYZE
+SELECT b.isbn, 
+       b.title,
+       b.publication_date,
+       b.rating
+  FROM book b
+ WHERE LOWER(b.title) = 'patterns of enterprise application architecture';
+</code></pre>
+<pre><code>QUERY PLAN
+----------
+&quot;Seq Scan on book b  (cost=0.00..4167.10 rows=500 width=57) (actual time=0.175..82.824 rows=1 loops=1)&quot;
+&quot;  Filter: (lower((title)::text) = 'patterns of enterprise application architecture'::text)&quot;
+&quot;  Rows Removed by Filter: 100006&quot;
+&quot;Planning Time: 0.128 ms&quot;
+&quot;Execution Time: 82.846 ms&quot;
+</code></pre>
+</li>
+<li>
+<p>Create an expression index</p>
+<pre><code class="language-sql">CREATE INDEX idx_book_lower_title on book (LOWER(title));
+</code></pre>
+</li>
+<li>
+<p>Repeat the <code>SELECT</code> query</p>
+<pre><code>QUERY PLAN
+----------
+&quot;Bitmap Heap Scan on book b  (cost=20.29..1290.40 rows=500 width=57) (actual time=0.189..0.190 rows=1 loops=1)&quot;
+&quot;  Recheck Cond: (lower((title)::text) = 'patterns of enterprise application architecture'::text)&quot;
+&quot;  Heap Blocks: exact=1&quot;
+&quot;  -&gt;  Bitmap Index Scan on idx_book_lower_title  (cost=0.00..20.17 rows=500 width=0) (actual time=0.183..0.183 rows=1 loops=1)&quot;
+&quot;        Index Cond: (lower((title)::text) = 'patterns of enterprise application architecture'::text)&quot;
+&quot;Planning Time: 0.526 ms&quot;
+&quot;Execution Time: 0.212 ms&quot;
+</code></pre>
+</li>
+</ol>
+<hr>
+<ul>
+<li><a href="https://www.postgresql.org/docs/13/indexes-expressional.html">https://www.postgresql.org/docs/13/indexes-expressional.html</a></li>
+</ul>
+<h2><a name="1d7f7e5f39be8319be61e0509a9e0090"></a>GIN indexes</h2>
+<p>GIN indexes are &quot;inverted indexes&quot;.
+An inverted index contains a separate entry for each component value, and can efficiently handle queries that test for the presence of specific component values.</p>
+<ol>
+<li>
+<p>B-Tree index is not used in queries with <code>LIKE</code></p>
+<pre><code class="language-sql">EXPLAIN ANALYZE
+SELECT b.isbn, 
+       b.title,
+       b.publication_date,
+       b.rating
+  FROM book b
+ WHERE b.title LIKE 'Patterns%';
+</code></pre>
+<pre><code>QUERY PLAN
+----------
+&quot;Seq Scan on book b  (cost=0.00..3917.09 rows=10 width=57) (actual time=0.017..18.060 rows=1 loops=1)&quot;
+&quot;  Filter: ((title)::text ~~ 'Patterns%'::text)&quot;
+&quot;  Rows Removed by Filter: 100006&quot;
+&quot;Planning Time: 0.733 ms&quot;
+&quot;Execution Time: 18.096 ms&quot;
+</code></pre>
+</li>
+<li>
+<p>To use a trigram GIN indexes, create an extension</p>
+<pre><code class="language-sql">CREATE EXTENSION IF NOT EXISTS pg_trgm;
+</code></pre>
+</li>
+<li>
+<p>Create the trigtram GIN index</p>
+<pre><code class="language-sql">CREATE INDEX idx_book_title_trgm ON book USING gin (title gin_trgm_ops);
+</code></pre>
+</li>
+<li>
+<p>Repeat the <code>SELECT</code> query</p>
+<pre><code>QUERY PLAN
+----------
+&quot;Bitmap Heap Scan on book b  (cost=100.08..138.37 rows=10 width=57) (actual time=0.123..0.125 rows=1 loops=1)&quot;
+&quot;  Recheck Cond: ((title)::text ~~ 'Patterns%'::text)&quot;
+&quot;  Rows Removed by Index Recheck: 3&quot;
+&quot;  Heap Blocks: exact=1&quot;
+&quot;  -&gt;  Bitmap Index Scan on idx_book_title_trgm  (cost=0.00..100.08 rows=10 width=0) (actual time=0.112..0.113 rows=4 loops=1)&quot;
+&quot;        Index Cond: ((title)::text ~~ 'Patterns%'::text)&quot;
+&quot;Planning Time: 0.509 ms&quot;
+&quot;Execution Time: 0.167 ms&quot;
+</code></pre>
+</li>
+<li>
+<p>GIN index can be combined with other indexes using bitmap operations</p>
+<pre><code class="language-sql">EXPLAIN ANALYZE
+SELECT b.isbn, 
+       b.title,
+       b.publication_date,
+       b.rating
+  FROM book b
+ WHERE b.publication_date &gt; '2019-01-01'
+   AND b.title LIKE 'a%';
+</code></pre>
+<pre><code>QUERY PLAN
+----------
+&quot;Bitmap Heap Scan on book b  (cost=184.16..1618.23 rows=597 width=57) (actual time=1.916..3.272 rows=621 loops=1)&quot;
+&quot;  Recheck Cond: (((title)::text ~~ 'a%'::text) AND (publication_date &gt; '2019-01-01'::date))&quot;
+&quot;  Heap Blocks: exact=505&quot;
+&quot;  -&gt;  BitmapAnd  (cost=184.16..184.16 rows=597 width=0) (actual time=1.772..1.773 rows=0 loops=1)&quot;
+&quot;        -&gt;  Bitmap Index Scan on idx_book_title_trgm  (cost=0.00..69.46 rows=6061 width=0) (actual time=1.077..1.077 rows=6209 loops=1)&quot;
+&quot;              Index Cond: ((title)::text ~~ 'a%'::text)&quot;
+&quot;        -&gt;  Bitmap Index Scan on idx_book_pub_date  (cost=0.00..114.15 rows=9848 width=0) (actual time=0.599..0.599 rows=9869 loops=1)&quot;
+&quot;              Index Cond: (publication_date &gt; '2019-01-01'::date)&quot;
+&quot;Planning Time: 0.182 ms&quot;
+&quot;Execution Time: 3.334 ms&quot;
+</code></pre>
+</li>
+</ol>
+<hr>
+<ul>
+<li><a href="https://www.postgresql.org/docs/13/indexes-types.html">https://www.postgresql.org/docs/13/indexes-types.html</a></li>
+</ul>
+<h2><a name="c39d79c0c6f99d7ff585ac9408522a22"></a>Hash indexes</h2>
+<p>Hash index is a flat structure unlike B-Tree.</p>
+<p>Hash indexes can only handle simple equality comparisons (using the <code>=</code> operator)</p>
+<p>The main advantage of Hash indexes over B-Tree is space.
+On a very large data sets Hash indexes takes less space compared to B-Tree and allow pretty fast lookups.</p>
+<p>Only B-Tree indexes can be unique, hash indexes doesn't support this feature.</p>
+<p>To use Hash indexes PostgreSQL 10+ is required.</p>
+<ol>
+<li>
+<p>Drop B-Tree index <code>idx_book_title</code></p>
+<pre><code class="language-sql">DROP INDEX idx_book_title
+</code></pre>
+</li>
+<li>
+<p>Create Hash index</p>
+<pre><code class="language-sql">CREATE INDEX idx_book_title_hash ON book USING HASH (title);
+</code></pre>
+</li>
+<li>
+<p>Execute the query</p>
+<pre><code class="language-sql">EXPLAIN ANALYZE
+SELECT b.isbn, 
+       b.title,
+       b.publication_date,
+       b.rating
+  FROM book b
+ WHERE b.title = 'Patterns of Enterprise Application Architecture'
+</code></pre>
+<pre><code>QUERY PLAN
+----------
+&quot;Index Scan using idx_book_title_hash on book b  (cost=0.00..8.02 rows=1 width=57) (actual time=0.029..0.029 rows=1 loops=1)&quot;
+&quot;  Index Cond: ((title)::text = 'Patterns of Enterprise Application Architecture'::text)&quot;
+&quot;Planning Time: 0.122 ms&quot;
+&quot;Execution Time: 0.043 ms&quot;
+</code></pre>
+</li>
+</ol>
+<h2><a name="9604d17d77116450f47e7f7d7cb37c58"></a>Create indexes on foreign keys</h2>
+<p>Make sure every foreign key has a matching index.</p>
+<p>There are few exceptions when index on foreign key is unnecessary:</p>
+<ul>
+<li>if the table with the foreign key is samll because sequential scan will be probably cheaper,</li>
+<li>if you will never join tables on this key,</li>
+<li>if you will never delete a row or update a key column in the referenced table.</li>
+</ul>
+<ol>
+<li>
+<p>Execute the query without indexing the foreign keys</p>
+<pre><code class="language-sql">EXPLAIN ANALYZE
+SELECT b.isbn, 
+       b.title,
+       b.publication_date,
+       b.rating
+  FROM book b
+  JOIN publisher p
+    ON p.publisher_id = b.publisher_id
+ WHERE b.publication_date = '1994-11-10';
+</code></pre>
+<pre><code>QUERY PLAN
+----------
+&quot;Hash Join  (cost=5.57..105.83 rows=27 width=57) (actual time=0.753..0.760 rows=1 loops=1)&quot;
+&quot;  Hash Cond: (b.publisher_id = p.publisher_id)&quot;
+&quot;  -&gt;  Bitmap Heap Scan on book b  (cost=4.50..104.69 rows=27 width=73) (actual time=0.456..0.459 rows=1 loops=1)&quot;
+&quot;        Recheck Cond: (publication_date = '1994-11-10'::date)&quot;
+&quot;        Heap Blocks: exact=1&quot;
+&quot;        -&gt;  Bitmap Index Scan on idx_book_pub_date  (cost=0.00..4.50 rows=27 width=0) (actual time=0.436..0.437 rows=1 loops=1)&quot;
+&quot;              Index Cond: (publication_date = '1994-11-10'::date)&quot;
+&quot;  -&gt;  Hash  (cost=1.03..1.03 rows=3 width=16) (actual time=0.124..0.126 rows=3 loops=1)&quot;
+&quot;        Buckets: 1024  Batches: 1  Memory Usage: 9kB&quot;
+&quot;        -&gt;  Seq Scan on publisher p  (cost=0.00..1.03 rows=3 width=16) (actual time=0.114..0.116 rows=3 loops=1)&quot;
+&quot;Planning Time: 1.978 ms&quot;
+&quot;Execution Time: 0.926 ms&quot;
+</code></pre>
+</li>
+<li>
+<p>Create the index matching the foreign key</p>
+<pre><code class="language-sql">CREATE INDEX idx_fk_book_publisher ON book (publisher_id);
+</code></pre>
+</li>
+<li>
+<p>Repeat the <code>SELECT</code> query and compare query plans</p>
+<pre><code>QUERY PLAN
+----------
+&quot;Nested Loop  (cost=0.29..26.36 rows=27 width=57) (actual time=0.177..0.193 rows=1 loops=1)&quot;
+&quot;  -&gt;  Seq Scan on publisher p  (cost=0.00..1.03 rows=3 width=16) (actual time=0.008..0.010 rows=3 loops=1)&quot;
+&quot;  -&gt;  Index Scan using idx_fk_book_publisher on book b  (cost=0.29..8.43 rows=1 width=73) (actual time=0.057..0.058 rows=0 loops=3)&quot;
+&quot;        Index Cond: (publisher_id = p.publisher_id)&quot;
+&quot;        Filter: (publication_date = '1994-11-10'::date)&quot;
+&quot;        Rows Removed by Filter: 2&quot;
+&quot;Planning Time: 0.720 ms&quot;
+&quot;Execution Time: 0.226 ms&quot;
+</code></pre>
+</li>
+<li>
+<p>Drop the index <code>idx_fk_book_publisher</code></p>
+<pre><code class="language-sql">DROP INDEX idx_fk_book_publisher;
+</code></pre>
+</li>
+<li>
+<p>Run the following query to find all unindexed foreign key constraints</p>
+<pre><code class="language-sql">SELECT c.conname AS fk_constraint_name, 
+       c.conrelid::REGCLASS AS table, 
+       c.confrelid::REGCLASS AS referenced_table,
+       ARRAY_AGG(a.attname) AS columns,
+       FORMAT('CREATE INDEX ON %s (%s);',
+       c.conrelid::regclass,
+       STRING_AGG(a.attname, ',')) as sql
+  FROM pg_constraint c
+  JOIN pg_attribute a 
+    ON a.attrelid = c.conrelid 
+   AND a.attnum = any(c.conkey)
+ WHERE c.contype = 'f'
+   AND NOT EXISTS (
+       SELECT 1
+         FROM pg_index i 
+        WHERE i.indrelid = c.conrelid
+         AND conkey &lt;@ STRING_TO_ARRAY(indkey::text, ' ')::SMALLINT[])
+ GROUP BY c.conname, c.conrelid, c.confrelid;
+</code></pre>
+<pre><code>fk_constraint_name        table   referenced_table  columns           sql
+-------------------------------------------------------------------------
+&quot;book_publisher_id_fkey&quot;  &quot;book&quot;  &quot;publisher&quot;       &quot;{publisher_id}&quot;  &quot;CREATE INDEX ON book (publisher_id);&quot;
+</code></pre>
+</li>
+<li>
+<p>Take the values of the <code>sql</code> column form the result set and execute to create the missing indexes.</p>
+</li>
+</ol>
+<h2><a name="7fc107be8e1d492f8fc88bec58ff7740"></a>Use more joins</h2>
+<p>PostgreSQL is good at joining multiple tables.
+Queries with joins are usually better than subqueries.
+A query with 5 joins are completely acceptable.</p>
+<pre><code class="language-sql">EXPLAIN ANALYZE
+SELECT b.isbn, 
+       b.title,
+	   b.publication_date,
+	   a.full_name,
+	   c.name
+  FROM book b
+  JOIN book_author ba 
+    ON b.book_id = ba.book_id
+  JOIN author a 
+    ON a.author_id = ba.author_id
+  JOIN book_category bc 
+    ON b.book_id = bc.book_id
+  JOIN category c 
+    ON c.category_id = bc.category_id
+ WHERE b.title LIKE '%Patterns%';
+</code></pre>
+<h2><a name="76ccb0862b9d9d30188b32c852396b28"></a>Don't over-index</h2>
+<p>Maintaining a lot of indexes has its price.
+Indexes consume disk space.
+The more indexes you have, the slower <code>INSERT</code> statements will become.</p>
+<p>Make sure you don't have an unused indexes.</p>
+<ol>
+<li>
+<p>Reset statistics counters to zeros</p>
+<pre><code class="language-sql">SELECT pg_stat_reset();
+</code></pre>
+</li>
+<li>
+<p>Let the system work for some time after resetting statistics.</p>
+</li>
+<li>
+<p>Find indexes that have never been used</p>
+<pre><code class="language-sql">SELECT s.schemaname,
+       s.relname AS table_name,
+       s.indexrelname AS index_name,
+       s.idx_scan AS times_used,
+       pg_size_pretty(pg_relation_size(t.relid)) AS table_size,
+       pg_size_pretty(pg_relation_size(s.indexrelid)) AS index_size,
+       idx.indexdef AS index_ddl
+  FROM pg_stat_user_indexes s
+  JOIN pg_stat_user_tables t 
+    ON s.relname = t.relname
+  JOIN pg_index i
+    ON s.indexrelid = i.indexrelid
+  JOIN pg_indexes AS idx 
+    ON s.indexrelname = idx.indexname
+   AND s.schemaname = idx.schemaname
+ WHERE s.idx_scan = 0 -- no scans
+   AND 0 &lt;&gt; ALL(i.indkey) -- 0 in the array means this is an expression index
+   AND NOT i.indisunique -- no unique index
+ ORDER BY pg_relation_size(s.indexrelid) DESC;
+</code></pre>
+</li>
+</ol>
+<h2><a name="2b1d46eeefdef5de7e4b4d5ce62849c4"></a>Keep statistics updated</h2>
+<p>The planner/optimizer relies on statistics about the contents of tables in order to generate good plans for queries.</p>
+<p>Make sure to run <code>VACUUM ANALYZE</code> to keep statistics up to date and recover or reuse disk space occupied by updated or deleted rows.</p>
+<p>PostgreSQL has <em>autovacuum</em> daemon automating the execution of <code>VACUUM</code> and <code>ANALYZE</code> commands.
+It is highly recommended to enable autovacuum feature.</p>
+<p>Check when the tables was last vacuumed and analyzed</p>
+<pre><code class="language-sql">SELECT schemaname, 
+       relname, 
+       last_vacuum, 
+       vacuum_count, 
+       last_analyze, 
+       analyze_count 
+  FROM pg_stat_user_tables;
+</code></pre>
+<hr>
+<ul>
+<li><a href="https://www.postgresql.org/docs/13/routine-vacuuming.html">https://www.postgresql.org/docs/13/routine-vacuuming.html</a></li>
+</ul>
+<h2><a name="8f264ba3b501b66608e02c8c5efc2c58"></a>Detect slow queries</h2>
+<p>To detect slow queries <code>pg_stat_statements</code> extension is required.
+It has to be preloaded using <code>shared_preload_libraries=pg_stat_statements</code>.</p>
+<ol>
+<li>
+<p>Check that <code>pg_stat_statements</code> was preloaded</p>
+<pre><code class="language-sql">SHOW shared_preload_libraries;
+</code></pre>
+<pre><code>shared_preload_libraries
+------------------------
+&quot;pg_stat_statements&quot;
+</code></pre>
+</li>
+<li>
+<p>Create extension for tracking planning and execution statistics of all executed SQL statements</p>
+<pre><code class="language-sql">CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
+</code></pre>
+</li>
+<li>
+<p>Get 20 slowest SQL queries</p>
+<pre><code class="language-sql">SELECT SUBSTRING(query, 1, 40) AS short_query,
+       ROUND(( 100 * total_exec_time / SUM(total_exec_time) OVER ())::NUMERIC, 2) AS percent,
+       ROUND(total_exec_time::numeric, 2) AS total_exec_time,
+       calls,
+       ROUND(mean_exec_time::numeric, 2) AS mean,
+       query
+  FROM pg_stat_statements
+</code></pre>
+</li>
+</ol>
+<p>ORDER BY total_exec_time DESC
+LIMIT 20;
+```</p>
+<hr>
+<ul>
+<li><a href="https://www.postgresql.org/docs/13/runtime-config-client.html#RUNTIME-CONFIG-CLIENT-PRELOAD">https://www.postgresql.org/docs/13/runtime-config-client.html#RUNTIME-CONFIG-CLIENT-PRELOAD</a></li>
+</ul>
+<h2><a name="ae39d16394b02eaba62f114a8d4231b2"></a>Cluster a table according to an index</h2>
+<p>When a table is clustered, it is physically reordered based on the index information.</p>
+<p>PostgreSQL Documentation:</p>
+<blockquote>
+<p>In cases where you are accessing single rows randomly within a table, the actual order of the data in the table is unimportant. However, if you tend to access some data more than others, and there is an index that groups them together, you will benefit from using CLUSTER. If you are requesting a range of indexed values from a table, or a single indexed value that has multiple rows that match, CLUSTER will help because once the index identifies the table page for the first row that matches, all other rows that match are probably already on the same table page, and so you save disk accesses and speed up the query.</p>
+</blockquote>
+<p>A table can be clustered according to an index using</p>
+<pre><code class="language-sql">CLUSTER book USING book_isbn_key;
+</code></pre>
+<p>Clustering is a one-time operation: when the table is subsequently updated, the changes are not clustered.</p>
+<hr>
+<ul>
+<li><a href="https://www.postgresql.org/docs/13/sql-cluster.html">https://www.postgresql.org/docs/13/sql-cluster.html</a></li>
+</ul>
+<h2><a name="88bb68b618474d18c73e4ada7256cfd9"></a>Use table partitioning</h2>
+<p>Partitioning refers to splitting what is logically one large table into smaller physical pieces.</p>
+<p>Partitioning benefits:</p>
+<ul>
+<li>
+<p>Partitioning helps to scale PostgreSQL by splitting large logical tables into smaller physical tables that can be stored on different storage media based on uses;</p>
+</li>
+<li>
+<p>Dividing a large table into smaller tables reduces table scans and memory swap problems and thus increases performance;</p>
+</li>
+<li>
+<p>Partitioning reduces index size and makes it more likely that the heavily-used parts of the indexes fit in memory.</p>
+</li>
+</ul>
+<p>You will get benefits from partitioning only when a table is very large.
+Very large means that the table is at least larger than the physical memory of the database server.</p>
+<p>To use declarative partition PostgreSQL 10+ is required.</p>
+<ol>
+<li>
+<p>Make sure <em>partition pruning</em> is enabled. Partition pruning is a query optimization technique that improves performance for declaratively partitioned tables.</p>
+<pre><code class="language-sql">SHOW enable_partition_pruning;
+</code></pre>
+<pre><code>enable_partition_pruning
+------------------------
+on
+</code></pre>
+</li>
+<li>
+<p>Drop all tables by executing DDL statements from <a href="drop-all.sql"><code>drop-all.sql</code></a></p>
+</li>
+<li>
+<p>Create a table <code>book</code> that will be partitioned by <code>publication_date</code> column</p>
+<pre><code class="language-sql">CREATE EXTENSION IF NOT EXISTS &quot;uuid-ossp&quot;;
+
+CREATE TABLE book (
+    book_id UUID DEFAULT uuid_generate_v4(),
+    isbn VARCHAR(14),
+    title VARCHAR(255) NOT NULL,
+    publication_date DATE NOT NULL,
+    rating NUMERIC(4, 3),
+    PRIMARY KEY (book_id, publication_date),
+    UNIQUE (isbn, publication_date)
+) PARTITION BY RANGE (publication_date);
+</code></pre>
+</li>
+<li>
+<p>Notice: primary key and unique constraint on partitioned table must include all partitioning columns.</p>
+</li>
+<li>
+<p>Create a tablespace for the partition with the most recent data.
+Tablespace allows to define locations in the file system where the files representing database objects can be stored.
+This way partitions can be stored on different storage media.</p>
+<pre><code class="language-sql">CREATE TABLESPACE fasttablespace LOCATION '/ssd1/postgresql/data/fasttablespace';
+</code></pre>
+</li>
+<li>
+<p>Create partitions for the data from the past in the default tablespace</p>
+<pre><code class="language-sql">CREATE TABLE book_y1990 PARTITION OF book
+  FOR VALUES FROM ('1990-01-01') TO ('2000-01-01');
+
+CREATE TABLE book_y2000 PARTITION OF book
+  FOR VALUES FROM ('2000-01-01') TO ('2010-01-01');
+
+CREATE TABLE book_y2010 PARTITION OF book
+  FOR VALUES FROM ('2010-01-01') TO ('2020-01-01');
+</code></pre>
+</li>
+<li>
+<p>Create partition for the most recent data in the <code>fasttablespace</code> tablespace located on different storage media</p>
+<pre><code class="language-sql">CREATE TABLE book_y2020 PARTITION OF book
+  FOR VALUES FROM ('2020-01-01') TO ('2030-01-01')
+  TABLESPACE fasttablespace;
+</code></pre>
+</li>
+<li>
+<p>Create an index on the key column. This automatically creates one index on each partition.</p>
+<pre><code class="language-sql">CREATE INDEX idx_book_part_key ON book (publication_date);
+</code></pre>
+</li>
+<li>
+<p>Generate some test data</p>
+<pre><code class="language-sql">INSERT INTO book (isbn, title, publication_date, rating)
+SELECT SUBSTR(MD5(RANDOM()::TEXT), 0, 14), 
+       MD5(RANDOM()::TEXT), 
+       DATE '2010-01-01' + CAST(RANDOM() * (DATE '2021-01-01' - DATE '2010-01-01') AS INT),
+       ROUND((1 + RANDOM() * 4)::numeric, 3)
+  FROM generate_series(1, 100000);
+</code></pre>
+</li>
+<li>
+<p>Depending on a predicate, only a single partition (smaller index) can be queried, improving query performance</p>
+<pre><code class="language-sql">EXPLAIN ANALYZE
+SELECT EXTRACT(YEAR FROM b.publication_date) AS pub_year,
+       COUNT(*)
+  FROM book b
+ WHERE b.publication_date &gt; '2020-01-01' -- Only book_y2020 will be queried
+ GROUP BY pub_year;
+</code></pre>
+<pre><code>QUERY PLAN
+----------
+&quot;HashAggregate  (cost=294.23..297.23 rows=200 width=16) (actual time=4.898..4.900 rows=2 loops=1)&quot;
+&quot;  Group Key: date_part('year'::text, (b.publication_date)::timestamp without time zone)&quot;
+&quot;  Batches: 1  Memory Usage: 40kB&quot;
+&quot;  -&gt;  Index Only Scan using book_y2020_publication_date_idx on book_y2020 b  (cost=0.29..248.79 rows=9089 width=8) (actual time=0.021..2.606 rows=9092 loops=1)&quot;
+&quot;        Index Cond: (publication_date &gt; '2020-01-01'::date)&quot;
+&quot;        Heap Fetches: 0&quot;
+&quot;Planning Time: 0.346 ms&quot;
+&quot;Execution Time: 5.112 ms&quot;
+</code></pre>
+</li>
+<li>
+<p>Depending on a predicate a, multiple partitions can be queried in parallel and combined into a single result set</p>
+<pre><code class="language-sql">EXPLAIN ANALYZE
+SELECT EXTRACT(YEAR FROM b.publication_date) AS pub_year,
+       COUNT(*)
+  FROM book b
+ WHERE b.publication_date &gt; '2010-01-01' -- Both book_y2010 and book_y2020 will be queried
+ GROUP BY pub_year;
+</code></pre>
+<pre><code>QUERY PLAN
+----------
+&quot;Finalize GroupAggregate  (cost=3455.77..3507.44 rows=200 width=16) (actual time=20.181..21.293 rows=12 loops=1)&quot;
+&quot;  Group Key: (date_part('year'::text, (b.publication_date)::timestamp without time zone))&quot;
+&quot;  -&gt;  Gather Merge  (cost=3455.77..3502.44 rows=400 width=16) (actual time=20.174..21.282 rows=33 loops=1)&quot;
+&quot;        Workers Planned: 2&quot;
+&quot;        Workers Launched: 2&quot;
+&quot;        -&gt;  Sort  (cost=2455.75..2456.25 rows=200 width=16) (actual time=17.239..17.241 rows=11 loops=3)&quot;
+&quot;              Sort Key: (date_part('year'::text, (b.publication_date)::timestamp without time zone))&quot;
+&quot;              Sort Method: quicksort  Memory: 25kB&quot;
+&quot;              Worker 0:  Sort Method: quicksort  Memory: 25kB&quot;
+&quot;              Worker 1:  Sort Method: quicksort  Memory: 25kB&quot;
+&quot;              -&gt;  Partial HashAggregate  (cost=2445.11..2448.11 rows=200 width=16) (actual time=17.210..17.213 rows=11 loops=3)&quot;
+&quot;                    Group Key: (date_part('year'::text, (b.publication_date)::timestamp without time zone))&quot;
+&quot;                    Batches: 1  Memory Usage: 40kB&quot;
+&quot;                    Worker 0:  Batches: 1  Memory Usage: 40kB&quot;
+&quot;                    Worker 1:  Batches: 1  Memory Usage: 40kB&quot;
+&quot;                    -&gt;  Parallel Append  (cost=0.29..2236.82 rows=41657 width=8) (actual time=0.031..10.669 rows=33327 loops=3)&quot;
+&quot;                          -&gt;  Parallel Index Only Scan using book_y2010_publication_date_idx on book_y2010 b_1  (cost=0.29..1835.51 rows=53449 width=8) (actual time=0.024..7.661 rows=30290 loops=3)&quot;
+&quot;                                Index Cond: (publication_date &gt; '2010-01-01'::date)&quot;
+&quot;                                Heap Fetches: 0&quot;
+&quot;                          -&gt;  Parallel Index Only Scan using book_y2020_publication_date_idx on book_y2020 b_2  (cost=0.29..193.03 rows=5360 width=8) (actual time=0.027..1.176 rows=4556 loops=2)&quot;
+&quot;                                Index Cond: (publication_date &gt; '2010-01-01'::date)&quot;
+&quot;                                Heap Fetches: 0&quot;
+&quot;Planning Time: 0.173 ms&quot;
+&quot;Execution Time: 21.418 ms&quot;
+</code></pre>
+</li>
+</ol>
+<hr>
+<ul>
+<li><a href="https://www.postgresql.org/docs/13/ddl-partitioning.html">https://www.postgresql.org/docs/13/ddl-partitioning.html</a></li>
+</ul>
+
+</div>
+    </div>
+  </section>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.20.0/components/prism-core.min.js" integrity="sha256-9h14mWYYiQGkeAKg2JtijbqApb56kgw57WN6sI6dwH0=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.20.0/plugins/autoloader/prism-autoloader.min.js" integrity="sha256-3S2PESHNt0YNL65z57WuHPHIv12fibpBDXepyCGHftw=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.20.0/plugins/custom-class/prism-custom-class.min.js" integrity="sha256-ubEwa1bEadlhCRqEVg7rO3VRU5gzqHAEE7pLAggldc8=" crossorigin="anonymous"></script>
+  <script>
+    Prism.plugins.customClass.prefix('prism-');
+  </script>
+</body>
+
+</html>

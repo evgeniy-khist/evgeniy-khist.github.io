@@ -57,6 +57,8 @@
           <div class="navbar-dropdown">
               <a class="navbar-item" href="/spring-data-examples/">
                 Spring Data JPA pitfalls and modern alternatives: Spring Data JDBC and Spring Data R2DBC
+              </a>              <a class="navbar-item" href="/postgresql-performance-essentials/">
+                PostgreSQL Performance Essentials in 1 Hour
               </a>              <a class="navbar-item" href="/geohash-example/">
                 Rents Map - Geohash Example
               </a>              <a class="navbar-item" href="/pairwise-comparison/">
@@ -104,41 +106,42 @@
 </div>
 
 <div class="content">
-<h1 id="rentsmapgeohashexample">Rents Map - Geohash Example</h1>
-<p>The example demonstrates server-side geo clustering using relational database (SQL) and <a href="https://en.wikipedia.org/wiki/Geohash" rel="noopener noreferrer" target="_blank">geohash</a> index.</p>
+<h1>Rents Map - Geohash Example</h1>
+<p>The example demonstrates server-side geo clustering using relational database (SQL) and <a href="https://en.wikipedia.org/wiki/Geohash">geohash</a> index.</p>
 <p>The example visualizes on a map apartment rental offers grouping offers located near one another together and representing them using colored circle of variable size.
 The larger the size, the more offers are available in the area.
 Color represents a price. Green - low price, yellow - average price, red - high price.
 When you hover over the circle, detailed information on the number of offers and the price is displayed.</p>
 <p>As you zoom in, the clusters are divided into smaller ones. At the maximum zoom level, circles represent individual offers.</p>
-<p><img src="demo.gif" alt="Rents Map Geohash Example Demo" /></p>
-<h2 id="howisitimplemented">How is it implemented?</h2>
-<p>Read about the implementation in the <a href="https://www.slideshare.net/EvgeniyKhist/serverside-geoclustering-based-on-geohash-full-article" rel="noopener noreferrer" target="_blank">article</a> on SlideShare.</p>
-<p><a href="https://www.slideshare.net/EvgeniyKhist/serverside-geoclustering-based-on-geohash-full-article" rel="noopener noreferrer" target="_blank"><img src="slideshare.png" alt="The article on SlideShare" /></a></p>
-<h2 id="building">Building</h2>
-<h3 id="beforeyoustart">Before You Start</h3>
-<p>To build you will need <a href="http://help.github.com/set-up-git-redirect" rel="noopener noreferrer" target="_blank">Git</a> and <a href="https://www.oracle.com/technetwork/java/javase/downloads/index.html" rel="noopener noreferrer" target="_blank">JDK 11</a> or later.</p>
-<h3 id="getthesourcecode">Get the Source Code</h3>
-<pre><code class="bash language-bash">git clone git@github.com:evgeniy-khist/geohash-example.git
+<p><img src="demo.gif" alt="Rents Map Geohash Example Demo"></p>
+<h2>How is it implemented?</h2>
+<p>Read about the implementation in the <a href="https://www.slideshare.net/EvgeniyKhist/serverside-geoclustering-based-on-geohash-full-article">article</a> on SlideShare.</p>
+<p><a href="https://www.slideshare.net/EvgeniyKhist/serverside-geoclustering-based-on-geohash-full-article"><img src="slideshare.png" alt="The article on SlideShare"></a></p>
+<h2>Building</h2>
+<h3>Before You Start</h3>
+<p>To build you will need <a href="http://help.github.com/set-up-git-redirect">Git</a> and <a href="https://www.oracle.com/technetwork/java/javase/downloads/index.html">JDK 11</a> or later.</p>
+<h3>Get the Source Code</h3>
+<pre><code class="language-bash">git clone git@github.com:evgeniy-khist/geohash-example.git
 cd geohash-example
 </code></pre>
-<h3 id="buildfromthecommandline">Build from the Command Line</h3>
-<p>This project uses a <a href="http://gradle.org/" rel="noopener noreferrer" target="_blank">Gradle</a> build.
-The instructions below use <a href="https://docs.gradle.org/current/userguide/gradle_wrapper.html" rel="noopener noreferrer" target="_blank">Gradle Wrapper</a> from the root of the source tree.
+<h3>Build from the Command Line</h3>
+<p>This project uses a <a href="http://gradle.org/">Gradle</a> build.
+The instructions below use <a href="https://docs.gradle.org/current/userguide/gradle_wrapper.html">Gradle Wrapper</a> from the root of the source tree.
 The wrapper script serves as a cross-platform, self-contained bootstrap mechanism for the build system.</p>
 <p>To compile, test and build JAR use:</p>
-<pre><code class="bash language-bash">./gradlew clean build -i
+<pre><code class="language-bash">./gradlew clean build -i
 </code></pre>
-<h2 id="runninglocally">Running Locally</h2>
+<h2>Running Locally</h2>
 <p>To run the project locally use:</p>
-<pre><code class="bash language-bash">./gradlew clean bootRun
+<pre><code class="language-bash">./gradlew clean bootRun
 </code></pre>
-<p>Open URL <a href="http://localhost:8080/geohash-example/" rel="noopener noreferrer" target="_blank">http://localhost:8080/geohash-example/</a> in a browser.</p>
-<h2 id="contributing">Contributing</h2>
-<p>This project follows <a href="https://google.github.io/styleguide/javaguide.html" rel="noopener noreferrer" target="_blank">Google Java Style Guide</a>.</p>
-<p>You may also be interested to import <a href="https://github.com/google/styleguide/blob/gh-pages/intellij-java-google-style.xml" rel="noopener noreferrer" target="_blank">intellij-java-google-style.xml</a> IntelliJ IDEA code style XML.</p>
-<h2 id="license">License</h2>
-<p>The Geohash Example is released under version 2.0 of the <a href="http://www.apache.org/licenses/LICENSE-2.0" rel="noopener noreferrer" target="_blank">Apache License</a>.</p>
+<p>Open URL <a href="http://localhost:8080/geohash-example/">http://localhost:8080/geohash-example/</a> in a browser.</p>
+<h2>Contributing</h2>
+<p>This project follows <a href="https://google.github.io/styleguide/javaguide.html">Google Java Style Guide</a>.</p>
+<p>You may also be interested to import <a href="https://github.com/google/styleguide/blob/gh-pages/intellij-java-google-style.xml">intellij-java-google-style.xml</a> IntelliJ IDEA code style XML.</p>
+<h2>License</h2>
+<p>The Geohash Example is released under version 2.0 of the <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache License</a>.</p>
+
 </div>
     </div>
   </section>

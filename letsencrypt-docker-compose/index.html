@@ -57,6 +57,8 @@
           <div class="navbar-dropdown">
               <a class="navbar-item" href="/spring-data-examples/">
                 Spring Data JPA pitfalls and modern alternatives: Spring Data JDBC and Spring Data R2DBC
+              </a>              <a class="navbar-item" href="/postgresql-performance-essentials/">
+                PostgreSQL Performance Essentials in 1 Hour
               </a>              <a class="navbar-item" href="/geohash-example/">
                 Rents Map - Geohash Example
               </a>              <a class="navbar-item" href="/pairwise-comparison/">
@@ -104,21 +106,21 @@
 </div>
 
 <div class="content">
-<h1 id="nginxandletsencryptwithdockercomposeinlessthan3minutes">Nginx and Let’s Encrypt with Docker Compose in less than 3 minutes</h1>
-<p>This example automatically obtains and renews <a href="https://letsencrypt.org/" rel="noopener noreferrer" target="_blank">Let's Encrypt</a> TLS certificates and set up HTTPS in Nginx for multiple domain names using Docker Compose.</p>
-<p>You can set up HTTPS in Nginx with Let's Encrypt TLS certificates for your domain names and get A+ rating at <a href="https://www.ssllabs.com/ssltest/" rel="noopener noreferrer" target="_blank">SSL Labs SSL Server Test</a> by changing a few configuration parameters of this example.</p>
+<h1>Nginx and Let’s Encrypt with Docker Compose in less than 3 minutes</h1>
+<p>This example automatically obtains and renews <a href="https://letsencrypt.org/">Let's Encrypt</a> TLS certificates and set up HTTPS in Nginx for multiple domain names using Docker Compose.</p>
+<p>You can set up HTTPS in Nginx with Let's Encrypt TLS certificates for your domain names and get A+ rating at <a href="https://www.ssllabs.com/ssltest/">SSL Labs SSL Server Test</a> by changing a few configuration parameters of this example.</p>
 <p>Let's Encrypt is a certificate authority that provides free X.509 certificates for TLS encryption.
-The certificates are valid for 90 days and can be renewed. Both initial creation and renewal can be automated using <a href="https://certbot.eff.org/" rel="noopener noreferrer" target="_blank">Certbot</a>.</p>
-<p>When using Kubernetes Let's Encrypt TLS certificates can be easily obtained and installed using <a href="https://cert-manager.io/" rel="noopener noreferrer" target="_blank">Cert Manager</a>.
+The certificates are valid for 90 days and can be renewed. Both initial creation and renewal can be automated using <a href="https://certbot.eff.org/">Certbot</a>.</p>
+<p>When using Kubernetes Let's Encrypt TLS certificates can be easily obtained and installed using <a href="https://cert-manager.io/">Cert Manager</a>.
 For simple web sites and applications Kubernetes is too much overhead and Docker Compose is more suitable.
 But for Docker Compose there is no such popular and robust tool for TLS certificate management.</p>
-<p>The example supports separate TLS certificates for multiple domain names, e.g. example.com, anotherdomain.net etc.
+<p>The example supports separate TLS certificates for multiple domain names, e.g. <a href="http://example.com">example.com</a>, <a href="http://anotherdomain.net">anotherdomain.net</a> etc.
 For simplicity this example deals with the following domain names:</p>
 <ul>
-<li>test1.devcomanda.com</li>
-<li>test2.devcomanda.com</li>
+<li><a href="http://test1.devcomanda.com">test1.devcomanda.com</a></li>
+<li><a href="http://test2.devcomanda.com">test2.devcomanda.com</a></li>
 </ul>
-<p>The idea is simple. There are 3 containers: </p>
+<p>The idea is simple. There are 3 containers:</p>
 <ul>
 <li>Nginx</li>
 <li>Certbot - for obtaining and renewing certificates</li>
@@ -126,7 +128,7 @@ For simplicity this example deals with the following domain names:</p>
 </ul>
 <p>The sequence of actions:</p>
 <ul>
-<li>Nginx generates self-signed "dummy" certificates to pass ACME challenge for obtaining Let's Encrypt certificates</li>
+<li>Nginx generates self-signed &quot;dummy&quot; certificates to pass ACME challenge for obtaining Let's Encrypt certificates</li>
 <li>Certbot waits for Nginx to become ready and obtains certificates</li>
 <li>Cron triggers Certbot to try to renew certificates and Nginx to reload configuration on a daily basis</li>
 </ul>
@@ -135,22 +137,34 @@ For simplicity this example deals with the following domain names:</p>
 <li><code>docker-compose.yml</code></li>
 <li><code>.env</code> - specifies <code>COMPOSE_PROJECT_NAME</code> to make container names independent from the base directory name</li>
 <li><code>config.env</code> - specifies project configuration, e.g. domain names, emails etc.</li>
-<li><code>html/</code> - directory mounted as <code>root</code> for Nginx<ul>
-<li><code>index.html</code></li></ul></li>
-<li><code>nginx/</code><ul>
+<li><code>html/</code> - directory mounted as <code>root</code> for Nginx
+<ul>
+<li><code>index.html</code></li>
+</ul>
+</li>
+<li><code>nginx/</code>
+<ul>
 <li><code>Dockerfile</code></li>
 <li><code>nginx.sh</code> - entrypoint script</li>
 <li><code>hsts.conf</code> - HTTP Strict Transport Security (HSTS) policy</li>
-<li><code>default.conf</code> - Nginx configuration for all domains. Contains a configuration to get A+ rating at <a href="https://www.ssllabs.com/ssltest/" rel="noopener noreferrer" target="_blank">SSL Server Test</a></li></ul></li>
-<li><code>certbot/</code><ul>
+<li><code>default.conf</code> - Nginx configuration for all domains. Contains a configuration to get A+ rating at <a href="https://www.ssllabs.com/ssltest/">SSL Server Test</a></li>
+</ul>
+</li>
+<li><code>certbot/</code>
+<ul>
 <li><code>Dockerfile</code></li>
-<li><code>certbot.sh</code> - entrypoint script</li></ul></li>
-<li><code>cron/</code><ul>
+<li><code>certbot.sh</code> - entrypoint script</li>
+</ul>
+</li>
+<li><code>cron/</code>
+<ul>
 <li><code>Dockerfile</code></li>
-<li><code>renew_certs.sh</code> - script executed on a daily basis to try to renew certificates</li></ul></li>
+<li><code>renew_certs.sh</code> - script executed on a daily basis to try to renew certificates</li>
+</ul>
+</li>
 </ul>
 <p>To adapt the example to your domain names you need to change only <code>config.env</code>:</p>
-<pre><code class="properties language-properties">DOMAINS=test1.devcomanda.com test2.devcomanda.com
+<pre><code class="language-properties">DOMAINS=test1.devcomanda.com test2.devcomanda.com
 CERTBOT_EMAILS=info@devcomanda.com info@devcomanda.com
 CERTBOT_TEST_CERT=1
 CERTBOT_RSA_KEY_SIZE=4096
@@ -163,43 +177,44 @@ CERTBOT_RSA_KEY_SIZE=4096
 </ul>
 <p>Let's Encrypt has rate limits. So, while testing it's better to use staging server by setting <code>CERTBOT_TEST_CERT=1</code> (default value).
 When you are ready to use production Let's Encrypt server, set <code>CERTBOT_TEST_CERT=0</code>.</p>
-<h2 id="prerequisites">Prerequisites</h2>
+<h2>Prerequisites</h2>
 <ol>
-<li><a href="https://docs.docker.com/install/" rel="noopener noreferrer" target="_blank">Docker</a> and <a href="https://docs.docker.com/compose/install/" rel="noopener noreferrer" target="_blank">Docker Compose</a> are installed</li>
+<li><a href="https://docs.docker.com/install/">Docker</a> and <a href="https://docs.docker.com/compose/install/">Docker Compose</a> are installed</li>
 <li>You have a domain name</li>
 <li>You have a server with a publicly routable IP address</li>
-<li>You have cloned this repository</li>
-</ol>
-<pre><code class="bash language-bash">   git clone https://github.com/evgeniy-khist/letsencrypt-docker-compose.git
+<li>You have cloned this repository<pre><code class="language-bash">git clone https://github.com/evgeniy-khist/letsencrypt-docker-compose.git
 </code></pre>
-<h2 id="step0pointyourdomaintoserverwithdnsarecords">Step 0 - Point your domain to server with DNS A records</h2>
+</li>
+</ol>
+<h2>Step 0 - Point your domain to server with DNS A records</h2>
 <p>For all domain names configure DNS A records to point to a server where Docker containers will be running.</p>
-<h2 id="step1editdomainnamesandemailsintheconfiguration">Step 1 - Edit domain names and emails in the configuration</h2>
+<h2>Step 1 - Edit domain names and emails in the configuration</h2>
 <p>Specify you domain names and contact emails for these domains in the <code>config.env</code>:</p>
-<pre><code class="properties language-properties">DOMAINS=test1.devcomanda.com test2.devcomanda.com
+<pre><code class="language-properties">DOMAINS=test1.devcomanda.com test2.devcomanda.com
 CERTBOT_EMAILS=info@devcomanda.com info@devcomanda.com
 </code></pre>
-<h2 id="step2createnameddockervolumesfordummyandletsencrypttlscertificates">Step 2 - Create named Docker volumes for dummy and Let's Encrypt TLS certificates</h2>
-<pre><code class="bash language-bash">docker volume create --name=devcomanda_nginx_ssl
+<h2>Step 2 - Create named Docker volumes for dummy and Let's Encrypt TLS certificates</h2>
+<pre><code class="language-bash">docker volume create --name=devcomanda_nginx_ssl
 docker volume create --name=devcomanda_certbot_certs
 </code></pre>
-<h2 id="step3buildimagesandstartcontainers">Step 3 - Build images and start containers</h2>
-<pre><code class="bash language-bash">docker-compose up --build
+<h2>Step 3 - Build images and start containers</h2>
+<pre><code class="language-bash">docker-compose up --build
 </code></pre>
-<h2 id="step4switchtoproductionletsencryptserverafterverifyinghttpsworkswithtestcertificates">Step 4 - Switch to production Let's Encrypt server after verifying HTTPS works with test certificates</h2>
+<h2>Step 4 - Switch to production Let's Encrypt server after verifying HTTPS works with test certificates</h2>
 <p>Stop comtainers:</p>
-<pre><code class="bash language-bash">docker-compose down
+<pre><code class="language-bash">docker-compose down
 </code></pre>
 <p>Configure to use production Let's Encrypt server in <code>config.env</code>:</p>
-<pre><code class="properties language-properties">CERTBOT_TEST_CERT=0
+<pre><code class="language-properties">CERTBOT_TEST_CERT=0
 </code></pre>
 <p>Re-create the volume for Let's Encrypt certificates:</p>
-<pre><code class="bash language-bash">docker volume rm devcomanda_certbot_certs
+<pre><code class="language-bash">docker volume rm devcomanda_certbot_certs
 docker volume create --name=devcomanda_certbot_certs
 </code></pre>
 <p>Start containers:</p>
-<pre><code class="bash language-bash">docker-compose up
+<pre><code class="language-bash">docker-compose up
 </code></pre>
+
 </div>
     </div>
   </section>
