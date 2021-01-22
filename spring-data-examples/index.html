@@ -57,14 +57,6 @@
           <div class="navbar-dropdown">
               <a class="navbar-item" href="/spring-data-examples/">
                 Spring Data JPA pitfalls and modern alternatives: Spring Data JDBC and Spring Data R2DBC
-              </a>              <a class="navbar-item" href="/postgresql-performance-essentials/">
-                PostgreSQL Performance Essentials in 1 Hour
-              </a>              <a class="navbar-item" href="/geohash-example/">
-                Rents Map - Geohash Example
-              </a>              <a class="navbar-item" href="/pairwise-comparison/">
-                Pairwise Comparison Method
-              </a>              <a class="navbar-item" href="/letsencrypt-docker-compose/">
-                Nginx and Let’s Encrypt with Docker Compose in less than 3 minutes
               </a>          </div>
         </div>
       </div>
@@ -101,7 +93,7 @@
       data-size="large" data-show-count="true" aria-label="Fork evgeniy-khist/spring-data-examples on GitHub">Fork</a>
   </div>
   <div class="column has-text-right has-text-grey">
-    <time datetime="2020-05-26">26 May 2020</time>
+    <time datetime="2021-01-22">22 Jan 2021</time>
   </div>
 </div>
 
@@ -626,7 +618,9 @@ void findById() {
 }
 </code></pre>
 <p>2 SQL queries are executed.</p>
-<p><strong>(1)</strong> Select book and authors. When searching by ID using <code>CrudRepository.findById</code>, the default <code>FetchMode</code> for associations with <code>FetchType.EAGER</code> is <code>FetchMode.JOIN</code></p>
+<ol>
+<li>
+<p>Select book and authors. When searching by ID using <code>CrudRepository.findById</code>, the default <code>FetchMode</code> for associations with <code>FetchType.EAGER</code> is <code>FetchMode.JOIN</code></p>
 <pre><code class="language-sql">SELECT book0_.id               AS id1_1_0_,
        book0_.isbn             AS isbn2_1_0_,
        book0_.publication_date AS publicat3_1_0_,
@@ -642,7 +636,9 @@ FROM   book book0_
                     ON authors1_.authors_id = author2_.id
 WHERE  book0_.id = ? /*57*/
 </code></pre>
-<p><strong>(2)</strong> Lazily select categories after the first access. When searching by ID using <code>CrudRepository.findById</code>, the default <code>FetchMode</code> for associations with <code>FetchType.LAZY</code> is <code>FetchMode.SELECT</code></p>
+</li>
+<li>
+<p>Lazily select categories after the first access. When searching by ID using <code>CrudRepository.findById</code>, the default <code>FetchMode</code> for associations with <code>FetchType.LAZY</code> is <code>FetchMode.SELECT</code></p>
 <pre><code class="language-sql">SELECT categories0_.book_id       AS book_id1_3_0_,
        categories0_.categories_id AS categori2_3_0_,
        category1_.id              AS id1_20_1_,
@@ -652,6 +648,8 @@ FROM   book_categories categories0_
                ON categories0_.categories_id = category1_.id
 WHERE  categories0_.book_id = ? /*57*/
 </code></pre>
+</li>
+</ol>
 <h5><a name="ecfc45d33505baec3249b78ec3e66059"></a>Query method</h5>
 <p><code>com.example.spring.data.jpa.repository.BookRepository</code> extends <code>com.example.spring.data.jpa.repository.AbstractBookRepository</code></p>
 <pre><code class="language-java">List&lt;T&gt; findByTitleContains(String title, Pageable pageable);
@@ -668,7 +666,9 @@ void queryMethod() {
 }
 </code></pre>
 <p>Query selects 2 books, so 5 SQL queries are executed.</p>
-<p><strong>(1)</strong> Select books. <code>FetchType.EAGER</code> has no effect when query method is used (JPQL), so the <code>FetchMode.SELECT</code> is used for all associations</p>
+<ol>
+<li>
+<p>Select books. <code>FetchType.EAGER</code> has no effect when query method is used (JPQL), so the <code>FetchMode.SELECT</code> is used for all associations</p>
 <pre><code class="language-sql">SELECT book0_.id               AS id1_1_,
        book0_.isbn             AS isbn2_1_,
        book0_.publication_date AS publicat3_1_,
@@ -678,7 +678,9 @@ WHERE  book0_.title LIKE ? escape ? /*%Pattern%,\*/
 ORDER  BY book0_.publication_date DESC
 LIMIT  ? /*2*/
 </code></pre>
-<p><strong>(2)</strong> Select authors for the 1st book from the result set. There will be a separate SQL query for each entity and its association from the result set (&quot;N+1 selects&quot; problem)</p>
+</li>
+<li>
+<p>Select authors for the 1st book from the result set. There will be a separate SQL query for each entity and its association from the result set (&quot;N+1 selects&quot; problem)</p>
 <pre><code class="language-sql">SELECT authors0_.book_id    AS book_id1_2_0_,
        authors0_.authors_id AS authors_2_2_0_,
        author1_.id          AS id1_0_1_,
@@ -688,7 +690,9 @@ FROM   book_authors authors0_
                ON authors0_.authors_id = author1_.id
 WHERE  authors0_.book_id = ? /*57*/
 </code></pre>
-<p><strong>(3)</strong> Select authors for the 2nd book from the result set</p>
+</li>
+<li>
+<p>Select authors for the 2nd book from the result set</p>
 <pre><code class="language-sql">SELECT authors0_.book_id    AS book_id1_2_0_,
        authors0_.authors_id AS authors_2_2_0_,
        author1_.id          AS id1_0_1_,
@@ -698,7 +702,9 @@ FROM   book_authors authors0_
                ON authors0_.authors_id = author1_.id
 WHERE  authors0_.book_id = ? /*58*/
 </code></pre>
-<p><strong>(4)</strong> Lazily select categories after the first access to the 1st book from the result set</p>
+</li>
+<li>
+<p>Lazily select categories after the first access to the 1st book from the result set</p>
 <pre><code class="language-sql">SELECT categories0_.book_id       AS book_id1_3_0_,
        categories0_.categories_id AS categori2_3_0_,
        category1_.id              AS id1_20_1_,
@@ -708,7 +714,9 @@ FROM   book_categories categories0_
                ON categories0_.categories_id = category1_.id
 WHERE  categories0_.book_id = ? /*58*/
 </code></pre>
-<p><strong>(5)</strong> Lazily select categories after the first access to the 2nd book from the result set</p>
+</li>
+<li>
+<p>Lazily select categories after the first access to the 2nd book from the result set</p>
 <pre><code class="language-sql">SELECT categories0_.book_id       AS book_id1_3_0_,
        categories0_.categories_id AS categori2_3_0_,
        category1_.id              AS id1_20_1_,
@@ -718,6 +726,8 @@ FROM   book_categories categories0_
                ON categories0_.categories_id = category1_.id
 WHERE  categories0_.book_id = ? /*57*/
 </code></pre>
+</li>
+</ol>
 <h5><a name="957184c667a66fa2409d3c81d58e0f90"></a>Query method with <code>@EntityGraph</code></h5>
 <p>JPA 2.1 has introduced the Entity Graph feature as dynamic alternative to <code>FetchType.LAZY</code> and <code>FetchType.EAGER</code> that are static and can't be changed at runtime.
 Entity Graph allows to specify what associations and basic fields have to loaded.
@@ -746,7 +756,9 @@ void entityGraph() {
 }
 </code></pre>
 <p>Query selects 2 books, so 3 SQL queries are executed.</p>
-<p><strong>(1)</strong> Select books and related authors using join as defined in the Entity Graph</p>
+<ol>
+<li>
+<p>Select books and related authors using join as defined in the Entity Graph</p>
 <pre><code class="language-sql">SELECT book0_.id               AS id1_1_0_,
        author2_.id             AS id1_0_1_,
        book0_.isbn             AS isbn2_1_0_,
@@ -763,7 +775,9 @@ FROM   book book0_
 WHERE  book0_.publication_date &gt;? /*2000-01-01*/
 ORDER  BY book0_.publication_date ASC  
 </code></pre>
-<p><strong>(2)</strong> Lazily select categories after the first access to the 1st book from the result set</p>
+</li>
+<li>
+<p>Lazily select categories after the first access to the 1st book from the result set</p>
 <pre><code class="language-sql">SELECT categories0_.book_id       AS book_id1_3_0_,
        categories0_.categories_id AS categori2_3_0_,
        category1_.id              AS id1_20_1_,
@@ -773,7 +787,9 @@ FROM   book_categories categories0_
                ON categories0_.categories_id = category1_.id
 WHERE  categories0_.book_id = ? /*57*/
 </code></pre>
-<p><strong>(3)</strong> Lazily select categories after the first access to the 2nd book from the result set</p>
+</li>
+<li>
+<p>Lazily select categories after the first access to the 2nd book from the result set</p>
 <pre><code class="language-sql">SELECT categories0_.book_id       AS book_id1_3_0_,
        categories0_.categories_id AS categori2_3_0_,
        category1_.id              AS id1_20_1_,
@@ -783,6 +799,8 @@ FROM   book_categories categories0_
                ON categories0_.categories_id = category1_.id
 WHERE  categories0_.book_id = ? /*58*/
 </code></pre>
+</li>
+</ol>
 <h5><a name="ce895104ae9e9dd02aafbba89a339104"></a>Query method with <code>@EntityGraph</code> and <code>Pageable</code></h5>
 <p>Usage of <code>@EntityGraph</code> with <code>Pageable</code> results in warning
 <code>HHH000104: firstResult/maxResults specified with collection fetch; applying in memory!</code>.
@@ -802,7 +820,9 @@ void entityGraphWithPageable() {
 }
 </code></pre>
 <p>Query selects 1 book, then the result set is pagination is applied in memory, so 2 SQL queries are executed.</p>
-<p><strong>(1)</strong> Select books and related authors using join without limiting maximum results (SQL <code>LIMIT</code>)</p>
+<ol>
+<li>
+<p>Select books and related authors using join without limiting maximum results (SQL <code>LIMIT</code>)</p>
 <pre><code class="language-sql">SELECT book0_.id               AS id1_1_0_,
        author2_.id             AS id1_0_1_,
        book0_.isbn             AS isbn2_1_0_,
@@ -819,7 +839,9 @@ FROM   book book0_
 WHERE  book0_.publication_date &gt;? /*2000-01-01*/
 ORDER  BY book0_.publication_date ASC  
 </code></pre>
-<p><strong>(2)</strong> Lazily select categories after the first access to the 1st book from the result set</p>
+</li>
+<li>
+<p>Lazily select categories after the first access to the 1st book from the result set</p>
 <pre><code class="language-sql">SELECT categories0_.book_id       AS book_id1_3_0_,
        categories0_.categories_id AS categori2_3_0_,
        category1_.id              AS id1_20_1_,
@@ -829,6 +851,8 @@ FROM   book_categories categories0_
                ON categories0_.categories_id = category1_.id
 WHERE  categories0_.book_id = ? /*57*/
 </code></pre>
+</li>
+</ol>
 <h5><a name="260b142dfcc1f303ff3e67de6da4d730"></a>Query method with <code>@EntityGraph</code> with multiple attribute nodes (issue HHH-13740)</h5>
 <p>When <code>@EntityGraph</code> has multiple attribute nodes and so defines multiple child collection to be eagerly fetched
 we face with issue <a href="https://hibernate.atlassian.net/browse/HHH-13740">HHH-13740</a> related to duplicates in the child collections.</p>
@@ -863,8 +887,8 @@ void entityGraphMultipleAttributeNodes() {
 }
 </code></pre>
 <p>1 SQL query is executed.</p>
-<p><strong>(1)</strong> Select books and related authors and categories using SQL join</p>
-<pre><code class="language-sql">SELECT book0_.id                  AS id1_1_0_,
+<ol>
+<li>Select books and related authors and categories using SQL join<pre><code class="language-sql">SELECT book0_.id                  AS id1_1_0_,
        author2_.id                AS id1_0_1_,
        category4_.id              AS id1_20_2_,
        book0_.isbn                AS isbn2_1_0_,
@@ -888,6 +912,8 @@ FROM   book book0_
 WHERE  book0_.publication_date BETWEEN ? AND ? /*2000-01-01,2020-01-01*/
 ORDER  BY book0_.publication_date ASC
 </code></pre>
+</li>
+</ol>
 <h5><a name="99fac513c058317164ad5a6e20d34f18"></a><code>@Query</code> with JPQL <code>join fetch</code></h5>
 <p>One more way to fetch related association using SQL join is to use custom JPQL query with <code>join fetch</code>.
 The result set in such a case will contain duplicates if the child collection size is greater than 1 (&gt;=2).
@@ -911,7 +937,9 @@ void jpqlJoinFetch() {
 }
 </code></pre>
 <p>Query selects 2 books, so 3 SQL queries are executed.</p>
-<p><strong>(1)</strong> Select books and related authors using join</p>
+<ol>
+<li>
+<p>Select books and related authors using join</p>
 <pre><code class="language-sql">SELECT book0_.id               AS id1_1_0_,
        author2_.id             AS id1_0_1_,
        book0_.isbn             AS isbn2_1_0_,
@@ -928,7 +956,9 @@ FROM   book book0_
 WHERE  book0_.publication_date &gt;? /*2000-01-01*/
 ORDER  BY book0_.publication_date ASC  
 </code></pre>
-<p><strong>(2)</strong> Lazily select categories after the first access to the 1st book from the result set</p>
+</li>
+<li>
+<p>Lazily select categories after the first access to the 1st book from the result set</p>
 <pre><code class="language-sql">SELECT categories0_.book_id       AS book_id1_3_0_,
        categories0_.categories_id AS categori2_3_0_,
        category1_.id              AS id1_20_1_,
@@ -938,7 +968,9 @@ FROM   book_categories categories0_
                ON categories0_.categories_id = category1_.id
 WHERE  categories0_.book_id = ? /*57*/
 </code></pre>
-<p><strong>(3)</strong> Lazily select categories after the first access to the 2nd book from the result set</p>
+</li>
+<li>
+<p>Lazily select categories after the first access to the 2nd book from the result set</p>
 <pre><code class="language-sql">SELECT categories0_.book_id       AS book_id1_3_0_,
        categories0_.categories_id AS categori2_3_0_,
        category1_.id              AS id1_20_1_,
@@ -948,6 +980,8 @@ FROM   book_categories categories0_
                ON categories0_.categories_id = category1_.id
 WHERE  categories0_.book_id = ? /*58*/
 </code></pre>
+</li>
+</ol>
 <h5><a name="ff9705f518ec48b7fa77d2d6cd0c3c14"></a><code>@Query</code> with JPQL <code>join fetch</code> and <code>distinct</code></h5>
 <p>A workaround to the issue with duplicates due to using JQPL <code>join fetch</code> is to use <code>distinct</code> operator.</p>
 <p><code>com.example.spring.data.jpa.repository.BookRepository</code></p>
@@ -968,7 +1002,9 @@ void jpqlJoinFetchDistinct() {
 }
 </code></pre>
 <p>Query selects 2 books, so 3 SQL queries are executed.</p>
-<p><strong>(1)</strong> Select distinct books and related authors using join</p>
+<ol>
+<li>
+<p>Select distinct books and related authors using join</p>
 <pre><code class="language-sql">SELECT DISTINCT book0_.id               AS id1_1_0_,
                 author2_.id             AS id1_0_1_,
                 book0_.isbn             AS isbn2_1_0_,
@@ -985,7 +1021,9 @@ void jpqlJoinFetchDistinct() {
  WHERE  book0_.publication_date &gt;? /*2000-01-01*/
  ORDER  BY book0_.publication_date ASC  
 </code></pre>
-<p><strong>(2)</strong> Lazily select categories after the first access to the 1st book from the result set</p>
+</li>
+<li>
+<p>Lazily select categories after the first access to the 1st book from the result set</p>
 <pre><code class="language-sql">SELECT categories0_.book_id       AS book_id1_3_0_,
        categories0_.categories_id AS categori2_3_0_,
        category1_.id              AS id1_20_1_,
@@ -995,7 +1033,9 @@ FROM   book_categories categories0_
                ON categories0_.categories_id = category1_.id
 WHERE  categories0_.book_id = ? /*57*/
 </code></pre>
-<p><strong>(3)</strong> Lazily select categories after the first access to the 2nd book from the result set</p>
+</li>
+<li>
+<p>Lazily select categories after the first access to the 2nd book from the result set</p>
 <pre><code class="language-sql">SELECT categories0_.book_id       AS book_id1_3_0_,
        categories0_.categories_id AS categori2_3_0_,
        category1_.id              AS id1_20_1_,
@@ -1005,6 +1045,8 @@ FROM   book_categories categories0_
                ON categories0_.categories_id = category1_.id
 WHERE  categories0_.book_id = ? /*58*/
 </code></pre>
+</li>
+</ol>
 <h5><a name="e11be536b6f6d686f69f20513138cae0"></a>Custom <code>@Repository</code> with Criteria API query</h5>
 <p>Spring Data JPA also supports Criteria API queries.
 Create an extension interface with a method for a custom query you want to implement using Criteria API.
@@ -1082,7 +1124,9 @@ void criteriaQuery() {
 </code></pre>
 <p><code>FetchType.EAGER</code> doesn't have effect on Criteria API, so all related associations are loaded with a separate SQL query (<code>FetchMode.SELECT</code>).</p>
 <p>Query selects 2 books, so 5 SQL queries are executed.</p>
-<p><strong>(1)</strong> Select books</p>
+<ol>
+<li>
+<p>Select books</p>
 <pre><code class="language-sql">SELECT book0_.id               AS id1_1_,
        book0_.isbn             AS isbn2_1_,
        book0_.publication_date AS publicat3_1_,
@@ -1095,7 +1139,9 @@ FROM   book book0_
 WHERE  book0_.title LIKE ? /*%Enterprise%*/
 ORDER  BY book0_.publication_date ASC  
 </code></pre>
-<p><strong>(2)</strong> Select authors for the 1st book from the result set</p>
+</li>
+<li>
+<p>Select authors for the 1st book from the result set</p>
 <pre><code class="language-sql">SELECT authors0_.book_id    AS book_id1_2_0_,
        authors0_.authors_id AS authors_2_2_0_,
        author1_.id          AS id1_0_1_,
@@ -1105,7 +1151,9 @@ FROM   book_authors authors0_
                ON authors0_.authors_id = author1_.id
 WHERE  authors0_.book_id = ? /*58*/
 </code></pre>
-<p><strong>(3)</strong> Select authors for the 2nd book from the result set</p>
+</li>
+<li>
+<p>Select authors for the 2nd book from the result set</p>
 <pre><code class="language-sql">SELECT authors0_.book_id    AS book_id1_2_0_,
        authors0_.authors_id AS authors_2_2_0_,
        author1_.id          AS id1_0_1_,
@@ -1115,7 +1163,9 @@ FROM   book_authors authors0_
                ON authors0_.authors_id = author1_.id
 WHERE  authors0_.book_id = ? /*57*/
 </code></pre>
-<p><strong>(4)</strong> Lazily select categories after the first access to the 1st book from the result set</p>
+</li>
+<li>
+<p>Lazily select categories after the first access to the 1st book from the result set</p>
 <pre><code class="language-sql">SELECT categories0_.book_id       AS book_id1_3_0_,
        categories0_.categories_id AS categori2_3_0_,
        category1_.id              AS id1_20_1_,
@@ -1125,7 +1175,9 @@ FROM   book_categories categories0_
                ON categories0_.categories_id = category1_.id
 WHERE  categories0_.book_id = ? /*57*/
 </code></pre>
-<p><strong>(5)</strong> Lazily select categories after the first access to the 2nd book from the result set</p>
+</li>
+<li>
+<p>Lazily select categories after the first access to the 2nd book from the result set</p>
 <pre><code class="language-sql">SELECT categories0_.book_id       AS book_id1_3_0_,
        categories0_.categories_id AS categori2_3_0_,
        category1_.id              AS id1_20_1_,
@@ -1135,6 +1187,8 @@ FROM   book_categories categories0_
                ON categories0_.categories_id = category1_.id
 WHERE  categories0_.book_id = ? /*58*/
 </code></pre>
+</li>
+</ol>
 <h5><a name="1323d64c9e1914e06c3b257f7cea728c"></a>Custom <code>@Repository</code> with Criteria API query with <code>fetch</code></h5>
 <p>To eagerly load a related association in Criteria API, use <code>fetch</code> method.</p>
 <pre><code class="language-java">CriteriaBuilder cb = em.getCriteriaBuilder();
@@ -1154,7 +1208,9 @@ void criteriaQueryFetch() {
 }
 </code></pre>
 <p>Query selects 2 books, so 3 SQL queries are executed.</p>
-<p><strong>(1)</strong> Select books and related authors using SQL join</p>
+<ol>
+<li>
+<p>Select books and related authors using SQL join</p>
 <pre><code class="language-sql">SELECT book0_.id               AS id1_1_0_,
        author2_.id             AS id1_0_1_,
        book0_.isbn             AS isbn2_1_0_,
@@ -1171,7 +1227,9 @@ FROM   book book0_
 WHERE  book0_.title LIKE ? /*%Enterprise%*/
 ORDER  BY book0_.publication_date ASC
 </code></pre>
-<p><strong>(2)</strong> Lazily select categories after the first access to the 1st book from the result set</p>
+</li>
+<li>
+<p>Lazily select categories after the first access to the 1st book from the result set</p>
 <pre><code class="language-sql">SELECT categories0_.book_id       AS book_id1_3_0_,
        categories0_.categories_id AS categori2_3_0_,
        category1_.id              AS id1_20_1_,
@@ -1181,7 +1239,9 @@ FROM   book_categories categories0_
                ON categories0_.categories_id = category1_.id
 WHERE  categories0_.book_id = ? /*57*/
 </code></pre>
-<p><strong>(3)</strong> Lazily select categories after the first access to the 2nd book from the result set</p>
+</li>
+<li>
+<p>Lazily select categories after the first access to the 2nd book from the result set</p>
 <pre><code class="language-sql">SELECT categories0_.book_id       AS book_id1_3_0_,
        categories0_.categories_id AS categori2_3_0_,
        category1_.id              AS id1_20_1_,
@@ -1191,6 +1251,8 @@ FROM   book_categories categories0_
                ON categories0_.categories_id = category1_.id
 WHERE  categories0_.book_id = ? /*58*/
 </code></pre>
+</li>
+</ol>
 <h5><a name="7285e9899741d937830c2225ff8d01bc"></a>Custom <code>@Repository</code> with Criteria API query with <code>fetch</code> and <code>distinct</code></h5>
 <p>A workaround to the issue with duplicates due to using <code>join</code> or <code>fetch</code> in Criteria API is to use <code>distinct</code> method.</p>
 <pre><code class="language-java">cq.select(book)
@@ -1209,7 +1271,9 @@ void criteriaQueryFetchDistinct() {
 }
 </code></pre>
 <p>Query selects 2 books, so 3 SQL queries are executed.</p>
-<p><strong>(1)</strong> Select distinct books and related authors using join</p>
+<ol>
+<li>
+<p>Select distinct books and related authors using join</p>
 <pre><code class="language-sql"> SELECT DISTINCT book0_.id               AS id1_1_0_,
                  author2_.id             AS id1_0_1_,
                  book0_.isbn             AS isbn2_1_0_,
@@ -1226,7 +1290,9 @@ void criteriaQueryFetchDistinct() {
  WHERE  book0_.title LIKE ? /*%Enterprise%*/
  ORDER  BY book0_.publication_date ASC  
 </code></pre>
-<p><strong>(2)</strong> Lazily select categories after the first access to the 1st book from the result set</p>
+</li>
+<li>
+<p>Lazily select categories after the first access to the 1st book from the result set</p>
 <pre><code class="language-sql">SELECT categories0_.book_id       AS book_id1_3_0_,
        categories0_.categories_id AS categori2_3_0_,
        category1_.id              AS id1_20_1_,
@@ -1236,7 +1302,9 @@ FROM   book_categories categories0_
                ON categories0_.categories_id = category1_.id
 WHERE  categories0_.book_id = ? /*57*/
 </code></pre>
-<p><strong>(3)</strong> Lazily select categories after the first access to the 2nd book from the result set</p>
+</li>
+<li>
+<p>Lazily select categories after the first access to the 2nd book from the result set</p>
 <pre><code class="language-sql">SELECT categories0_.book_id       AS book_id1_3_0_,
        categories0_.categories_id AS categori2_3_0_,
        category1_.id              AS id1_20_1_,
@@ -1246,6 +1314,8 @@ FROM   book_categories categories0_
                ON categories0_.categories_id = category1_.id
 WHERE  categories0_.book_id = ? /*58*/
 </code></pre>
+</li>
+</ol>
 <h4><a name="239f2f55854878f99d5d4d379a765d39"></a>Entity with <code>@Fetch(JOIN)</code></h4>
 <p><code>com.example.spring.data.jpa.entity.BookWithFetchModeJoin</code></p>
 <pre><code class="language-java">@Entity
@@ -1285,8 +1355,8 @@ void findById() {
 }
 </code></pre>
 <p>A single SQL query is executed per <code>CrudRepository.findById</code> call.</p>
-<p><strong>(1)</strong> Select book with authors and categories</p>
-<pre><code class="language-sql">SELECT bookwithfe0_.id                           AS id1_8_0_,
+<ol>
+<li>Select book with authors and categories<pre><code class="language-sql">SELECT bookwithfe0_.id                           AS id1_8_0_,
        bookwithfe0_.isbn                         AS isbn2_8_0_,
        bookwithfe0_.publication_date             AS publicat3_8_0_,
        bookwithfe0_.title                        AS title4_8_0_,
@@ -1310,6 +1380,8 @@ FROM   book_with_fetch_mode_join bookwithfe0_
                     ON categories3_.categories_id = category4_.id
 WHERE  bookwithfe0_.id = ?
 </code></pre>
+</li>
+</ol>
 <h5><a name="ecfc45d33505baec3249b78ec3e66059"></a>Query method</h5>
 <p>The behavior of JQPL queries (query methods) during the loading entities
 with associations with <code>FetchMode.JOIN</code> is, at first glance, a bit unexpected.
@@ -1330,7 +1402,9 @@ void queryMethod() {
 }
 </code></pre>
 <p>Query selects 2 books, so 5 SQL queries are executed.</p>
-<p><strong>(1)</strong> Select books</p>
+<ol>
+<li>
+<p>Select books</p>
 <pre><code class="language-sql">SELECT bookwithfe0_.id               AS id1_8_,
        bookwithfe0_.isbn             AS isbn2_8_,
        bookwithfe0_.publication_date AS publicat3_8_,
@@ -1340,7 +1414,9 @@ WHERE  bookwithfe0_.title LIKE ? escape ? /*%Pattern%,\*/
 ORDER  BY bookwithfe0_.publication_date DESC
 LIMIT  ? /*2*/
 </code></pre>
-<p><strong>(2)</strong> Select categories for the 1st book from the result set</p>
+</li>
+<li>
+<p>Select categories for the 1st book from the result set</p>
 <pre><code class="language-sql">SELECT categories0_.book_with_fetch_mode_join_id AS book_wit1_10_0_,
        categories0_.categories_id                AS categori2_10_0_,
        category1_.id                             AS id1_20_1_,
@@ -1350,7 +1426,9 @@ FROM   book_with_fetch_mode_join_categories categories0_
                ON categories0_.categories_id = category1_.id
 WHERE  categories0_.book_with_fetch_mode_join_id = ? /*23*/
 </code></pre>
-<p><strong>(3)</strong> Select authors for the 1st book from the result set</p>
+</li>
+<li>
+<p>Select authors for the 1st book from the result set</p>
 <pre><code class="language-sql">SELECT authors0_.book_with_fetch_mode_join_id AS book_wit1_9_0_,
        authors0_.authors_id                   AS authors_2_9_0_,
        author1_.id                            AS id1_0_1_,
@@ -1360,7 +1438,9 @@ FROM   book_with_fetch_mode_join_authors authors0_
                ON authors0_.authors_id = author1_.id
 WHERE  authors0_.book_with_fetch_mode_join_id = ? /*23*/
 </code></pre>
-<p><strong>(4)</strong> Select categories for the 2nd book from the result set</p>
+</li>
+<li>
+<p>Select categories for the 2nd book from the result set</p>
 <pre><code class="language-sql">SELECT categories0_.book_with_fetch_mode_join_id AS book_wit1_10_0_,
        categories0_.categories_id                AS categori2_10_0_,
        category1_.id                             AS id1_20_1_,
@@ -1370,7 +1450,9 @@ FROM   book_with_fetch_mode_join_categories categories0_
                ON categories0_.categories_id = category1_.id
 WHERE  categories0_.book_with_fetch_mode_join_id = ? /*24*/
 </code></pre>
-<p><strong>(5)</strong> Select authors for the 2nd book from the result set</p>
+</li>
+<li>
+<p>Select authors for the 2nd book from the result set</p>
 <pre><code class="language-sql">SELECT authors0_.book_with_fetch_mode_join_id AS book_wit1_9_0_,
        authors0_.authors_id                   AS authors_2_9_0_,
        author1_.id                            AS id1_0_1_,
@@ -1380,6 +1462,8 @@ FROM   book_with_fetch_mode_join_authors authors0_
                ON authors0_.authors_id = author1_.id
 WHERE  authors0_.book_with_fetch_mode_join_id = ? /*24*/
 </code></pre>
+</li>
+</ol>
 <h4><a name="61d561e02c4002d6d6ad4646e5d328f7"></a>Entity with <code>@Fetch(SELECT)</code></h4>
 <p><code>com.example.spring.data.jpa.entity.BookWithFetchModeSelect</code></p>
 <pre><code class="language-java">@Entity
@@ -1407,7 +1491,9 @@ void findById() {
 }
 </code></pre>
 <p>3 SQL queries are executed in total.</p>
-<p><strong>(1)</strong> Select book by ID</p>
+<ol>
+<li>
+<p>Select book by ID</p>
 <pre><code class="language-sql">SELECT bookwithfe0_.id               AS id1_11_0_,
        bookwithfe0_.isbn             AS isbn2_11_0_,
        bookwithfe0_.publication_date AS publicat3_11_0_,
@@ -1415,7 +1501,9 @@ void findById() {
 FROM   book_with_fetch_mode_select bookwithfe0_
 WHERE  bookwithfe0_.id = ? /*69*/
 </code></pre>
-<p><strong>(2)</strong> Select authors for the book</p>
+</li>
+<li>
+<p>Select authors for the book</p>
 <pre><code class="language-sql">SELECT authors0_.book_with_fetch_mode_select_id AS book_wit1_12_0_,
        authors0_.authors_id                     AS authors_2_12_0_,
        author1_.id                              AS id1_0_1_,
@@ -1425,7 +1513,9 @@ FROM   book_with_fetch_mode_select_authors authors0_
                ON authors0_.authors_id = author1_.id
 WHERE  authors0_.book_with_fetch_mode_select_id = ? /*69*/
 </code></pre>
-<p><strong>(3)</strong> Lazily select categories after the first access to the book</p>
+</li>
+<li>
+<p>Lazily select categories after the first access to the book</p>
 <pre><code class="language-sql">SELECT categories0_.book_with_fetch_mode_select_id AS book_wit1_13_0_,
        categories0_.categories_id                  AS categori2_13_0_,
        category1_.id                               AS id1_20_1_,
@@ -1435,6 +1525,8 @@ FROM   book_with_fetch_mode_select_categories categories0_
                ON categories0_.categories_id = category1_.id
 WHERE  categories0_.book_with_fetch_mode_select_id = ? /*69*/
 </code></pre>
+</li>
+</ol>
 <h5><a name="ecfc45d33505baec3249b78ec3e66059"></a>Query method</h5>
 <p><code>com.example.spring.data.jpa.BookWithFetchModeSelectRepositoryTest</code> extends <code>com.example.spring.data.jpa.AbstractBookRepositoryBaseTest</code></p>
 <pre><code class="language-java">@Test
@@ -1448,7 +1540,9 @@ void queryMethod() {
 }
 </code></pre>
 <p>Query selects 2 books, so 5 SQL queries are executed.</p>
-<p><strong>(1)</strong> Select books</p>
+<ol>
+<li>
+<p>Select books</p>
 <pre><code class="language-sql">SELECT bookwithfe0_.id               AS id1_11_,
        bookwithfe0_.isbn             AS isbn2_11_,
        bookwithfe0_.publication_date AS publicat3_11_,
@@ -1458,7 +1552,9 @@ WHERE  bookwithfe0_.title LIKE ? escape ? /*%Pattern%,\*/
 ORDER  BY bookwithfe0_.publication_date DESC
 LIMIT  ? /*2*/
 </code></pre>
-<p><strong>(2)</strong> Select authors for the 1st book from the result set</p>
+</li>
+<li>
+<p>Select authors for the 1st book from the result set</p>
 <pre><code class="language-sql">SELECT authors0_.book_with_fetch_mode_select_id AS book_wit1_12_0_,
        authors0_.authors_id                     AS authors_2_12_0_,
        author1_.id                              AS id1_0_1_,
@@ -1468,7 +1564,9 @@ FROM   book_with_fetch_mode_select_authors authors0_
                ON authors0_.authors_id = author1_.id
 WHERE  authors0_.book_with_fetch_mode_select_id = ? /*69*/
 </code></pre>
-<p><strong>(3)</strong> Select authors for the 2nd book from the result set</p>
+</li>
+<li>
+<p>Select authors for the 2nd book from the result set</p>
 <pre><code class="language-sql">SELECT authors0_.book_with_fetch_mode_select_id AS book_wit1_12_0_,
        authors0_.authors_id                     AS authors_2_12_0_,
        author1_.id                              AS id1_0_1_,
@@ -1478,7 +1576,9 @@ FROM   book_with_fetch_mode_select_authors authors0_
                ON authors0_.authors_id = author1_.id
 WHERE  authors0_.book_with_fetch_mode_select_id = ? /*70*/
 </code></pre>
-<p><strong>(4)</strong> Lazily select categories after the first access to the 1st book from the result set</p>
+</li>
+<li>
+<p>Lazily select categories after the first access to the 1st book from the result set</p>
 <pre><code class="language-sql">SELECT categories0_.book_with_fetch_mode_select_id AS book_wit1_13_0_,
        categories0_.categories_id                  AS categori2_13_0_,
        category1_.id                               AS id1_20_1_,
@@ -1488,7 +1588,9 @@ FROM   book_with_fetch_mode_select_categories categories0_
                ON categories0_.categories_id = category1_.id
 WHERE  categories0_.book_with_fetch_mode_select_id = ? /*70*/
 </code></pre>
-<p><strong>(5)</strong> Lazily select categories after the first access to the 2nd book from the result set</p>
+</li>
+<li>
+<p>Lazily select categories after the first access to the 2nd book from the result set</p>
 <pre><code class="language-sql">SELECT categories0_.book_with_fetch_mode_select_id AS book_wit1_13_0_,
        categories0_.categories_id                  AS categori2_13_0_,
        category1_.id                               AS id1_20_1_,
@@ -1498,6 +1600,8 @@ FROM   book_with_fetch_mode_select_categories categories0_
                ON categories0_.categories_id = category1_.id
 WHERE  categories0_.book_with_fetch_mode_select_id = ? /*69*/
 </code></pre>
+</li>
+</ol>
 <h4><a name="76b5b36ea931f6c209971594a5473ffa"></a>Entity with <code>@Fetch(SUBSELECT)</code></h4>
 <p><code>com.example.spring.data.jpa.entity.BookWithFetchModeSubselect</code></p>
 <pre><code class="language-java">@Entity
@@ -1526,7 +1630,9 @@ void findById() {
 <p><code>FetchMode.SUBSELECT</code> when loading entity by ID doesn't have any sense, so Hibernate ignores it for <code>CrudRepository.findById</code> calls.
 Instead, <code>CrudRepository.findById</code> behaves like with <code>FetchMode.SELECT</code>.</p>
 <p>3 SQL queries are executed in total.</p>
-<p><strong>(1)</strong> Select book by ID</p>
+<ol>
+<li>
+<p>Select book by ID</p>
 <pre><code class="language-sql">SELECT bookwithfe0_.id               AS id1_14_0_,
        bookwithfe0_.isbn             AS isbn2_14_0_,
        bookwithfe0_.publication_date AS publicat3_14_0_,
@@ -1534,7 +1640,9 @@ Instead, <code>CrudRepository.findById</code> behaves like with <code>FetchMode.
 FROM   book_with_fetch_mode_subselect bookwithfe0_
 WHERE  bookwithfe0_.id = ? /*35*/
 </code></pre>
-<p><strong>(2)</strong> Select authors for the book</p>
+</li>
+<li>
+<p>Select authors for the book</p>
 <pre><code class="language-sql">SELECT authors0_.book_with_fetch_mode_subselect_id AS book_wit1_15_0_,
        authors0_.authors_id                        AS authors_2_15_0_,
        author1_.id                                 AS id1_0_1_,
@@ -1544,7 +1652,9 @@ FROM   book_with_fetch_mode_subselect_authors authors0_
                ON authors0_.authors_id = author1_.id
 WHERE  authors0_.book_with_fetch_mode_subselect_id = ? /*35*/
 </code></pre>
-<p><strong>(3)</strong> Lazily select categories after the first access to the book</p>
+</li>
+<li>
+<p>Lazily select categories after the first access to the book</p>
 <pre><code class="language-sql">SELECT categories0_.book_with_fetch_mode_subselect_id AS book_wit1_16_0_,
        categories0_.categories_id                     AS categori2_16_0_,
        category1_.id                                  AS id1_20_1_,
@@ -1554,6 +1664,8 @@ FROM   book_with_fetch_mode_subselect_categories categories0_
                ON categories0_.categories_id = category1_.id
 WHERE  categories0_.book_with_fetch_mode_subselect_id = ? /*35*/
 </code></pre>
+</li>
+</ol>
 <h5><a name="ecfc45d33505baec3249b78ec3e66059"></a>Query method</h5>
 <p><code>com.example.spring.data.jpa.BookWithFetchModeSubselectRepositoryTest</code> extends <code>com.example.spring.data.jpa.AbstractBookRepositoryBaseTest</code></p>
 <pre><code class="language-java">@Test
@@ -1570,7 +1682,9 @@ void queryMethod() {
 solving &quot;N+1 selects&quot; problem.
 But <code>FetchMode.SUBSELECT</code> ignores pagination (<code>LIMIT</code>) in the sub-select what may lead to loading the whole database table into memory.</p>
 <p>3 SQL queries are executed regardless of the result set size.</p>
-<p><strong>(1)</strong> Select books</p>
+<ol>
+<li>
+<p>Select books</p>
 <pre><code class="language-sql">SELECT bookwithfe0_.id               AS id1_14_,
        bookwithfe0_.isbn             AS isbn2_14_,
        bookwithfe0_.publication_date AS publicat3_14_,
@@ -1580,7 +1694,9 @@ WHERE  bookwithfe0_.title LIKE ? escape ? /*%Pattern%,\*/
 ORDER  BY bookwithfe0_.publication_date DESC
 LIMIT  ? /*2*/
 </code></pre>
-<p><strong>(2)</strong> Select authors for all selected books</p>
+</li>
+<li>
+<p>Select authors for all selected books</p>
 <pre><code class="language-sql">SELECT authors0_.book_with_fetch_mode_subselect_id AS book_wit1_15_1_,
        authors0_.authors_id                        AS authors_2_15_1_,
        author1_.id                                 AS id1_0_0_,
@@ -1592,7 +1708,9 @@ WHERE  authors0_.book_with_fetch_mode_subselect_id IN (SELECT bookwithfe0_.id
                                                        FROM   book_with_fetch_mode_subselect bookwithfe0_
                                                        WHERE  bookwithfe0_.title LIKE ? ESCAPE ?) /*%Pattern%,\*/
 </code></pre>
-<p><strong>(3)</strong> Lazily select categories for all selected books after the first access to categories collection of any entity from the result set</p>
+</li>
+<li>
+<p>Lazily select categories for all selected books after the first access to categories collection of any entity from the result set</p>
 <pre><code class="language-sql">SELECT categories0_.book_with_fetch_mode_subselect_id AS book_wit1_16_1_,
        categories0_.categories_id                     AS categori2_16_1_,
        category1_.id                                  AS id1_20_0_,
@@ -1604,6 +1722,8 @@ WHERE  categories0_.book_with_fetch_mode_subselect_id IN (SELECT bookwithfe0_.id
                                                           FROM   book_with_fetch_mode_subselect bookwithfe0_
                                                           WHERE  bookwithfe0_.title LIKE ? ESCAPE ?) /*%Pattern%,\*/
 </code></pre>
+</li>
+</ol>
 <h4><a name="b77feec501b1fe41ebee44d25e206880"></a>Entity with <code>@BatchSize</code></h4>
 <p><code>com.example.spring.data.jpa.entity.BookWithBatchSize</code></p>
 <pre><code class="language-java">@Entity
@@ -1632,7 +1752,9 @@ void findById() {
 <p><code>@BatchSize</code> doesn't influence loading entity by ID, so Hibernate ignores it for <code>CrudRepository.findById</code> calls.
 So, <code>CrudRepository.findById</code> behaves like without explicitly defined <code>FetchMode</code> with <code>@Fetch</code>.</p>
 <p>2 SQL queries are executed in total.</p>
-<p><strong>(1)</strong> Select book with authors by ID using SQL join</p>
+<ol>
+<li>
+<p>Select book with authors by ID using SQL join</p>
 <pre><code class="language-sql">SELECT bookwithba0_.id                   AS id1_5_0_,
        bookwithba0_.isbn                 AS isbn2_5_0_,
        bookwithba0_.publication_date     AS publicat3_5_0_,
@@ -1648,7 +1770,9 @@ FROM   book_with_batch_size bookwithba0_
                     ON authors1_.authors_id = author2_.id
 WHERE  bookwithba0_.id = ? /*11*/
 </code></pre>
-<p><strong>(2)</strong> Lazily select categories after the first access to the book</p>
+</li>
+<li>
+<p>Lazily select categories after the first access to the book</p>
 <pre><code class="language-sql">SELECT categories0_.book_with_batch_size_id AS book_wit1_7_1_,
        categories0_.categories_id           AS categori2_7_1_,
        category1_.id                        AS id1_20_0_,
@@ -1658,6 +1782,8 @@ FROM   book_with_batch_size_categories categories0_
                ON categories0_.categories_id = category1_.id
 WHERE  categories0_.book_with_batch_size_id = ? /*11*/
 </code></pre>
+</li>
+</ol>
 <h5><a name="ecfc45d33505baec3249b78ec3e66059"></a>Query method</h5>
 <p><code>com.example.spring.data.jpa.BookWithBatchSizeRepositoryTest</code> extends <code>com.example.spring.data.jpa.AbstractBookRepositoryBaseTest</code></p>
 <pre><code class="language-java">@Test
@@ -1672,7 +1798,9 @@ void queryMethod() {
 </code></pre>
 <p>With <code>@BatchSize(size = batchSize)</code> Hibernate generates (1 + ceil(N / batchSize)).</p>
 <p>Query selects 2 books, so 3 SQL queries are executed.</p>
-<p><strong>(1)</strong> Select books</p>
+<ol>
+<li>
+<p>Select books</p>
 <pre><code class="language-sql">SELECT bookwithba0_.id               AS id1_5_,
        bookwithba0_.isbn             AS isbn2_5_,
        bookwithba0_.publication_date AS publicat3_5_,
@@ -1682,7 +1810,9 @@ WHERE  bookwithba0_.title LIKE ? escape ? /*%Pattern%,\*/
 ORDER  BY bookwithba0_.publication_date DESC
 LIMIT  ? /*2*/
 </code></pre>
-<p><strong>(2)</strong> Select authors for 2 selected books using SQL <code>IN</code> operator</p>
+</li>
+<li>
+<p>Select authors for 2 selected books using SQL <code>IN</code> operator</p>
 <pre><code class="language-sql">SELECT authors0_.book_with_batch_size_id AS book_wit1_6_1_,
        authors0_.authors_id              AS authors_2_6_1_,
        author1_.id                       AS id1_0_0_,
@@ -1692,7 +1822,9 @@ FROM   book_with_batch_size_authors authors0_
                ON authors0_.authors_id = author1_.id
 WHERE  authors0_.book_with_batch_size_id IN ( ?, ? ) /*11,12*/
 </code></pre>
-<p><strong>(3)</strong> Lazily select categories for 2 selected books after the first access to categories collection of any entity from the result set</p>
+</li>
+<li>
+<p>Lazily select categories for 2 selected books after the first access to categories collection of any entity from the result set</p>
 <pre><code class="language-sql">SELECT categories0_.book_with_batch_size_id AS book_wit1_7_1_,
        categories0_.categories_id           AS categori2_7_1_,
        category1_.id                        AS id1_20_0_,
@@ -1702,6 +1834,8 @@ FROM   book_with_batch_size_categories categories0_
                ON categories0_.categories_id = category1_.id
 WHERE  categories0_.book_with_batch_size_id IN ( ?, ? ) /*12,11*/
 </code></pre>
+</li>
+</ol>
 <h4><a name="1049387d75c060dc77f67c5477fb48d4"></a>Entity with multiple bags resulting in <code>MultipleBagFetchException</code></h4>
 <p>Entity with multiple bags (two <code>@ManyToMany</code> collections with type <code>List</code>) resulting in <code>MultipleBagFetchException</code></p>
 <p><code>com.example.spring.data.jpa.entity.BookWithMultipleBags</code></p>
@@ -1815,7 +1949,9 @@ void implicitOptimisticLock() {
 }
 </code></pre>
 <p>The following SQL queries are executed.</p>
-<p><strong>(1)</strong> Creating new transaction #1</p>
+<ol>
+<li>
+<p>Creating new transaction #1</p>
 <pre><code class="language-sql">SELECT bookrating0_.id                AS id1_4_,
        bookrating0_.book_id           AS book_id5_4_,
        bookrating0_.number_of_ratings AS number_o2_4_,
@@ -1826,7 +1962,9 @@ FROM   book_rating bookrating0_
                     ON bookrating0_.book_id = book1_.id
 WHERE  book1_.isbn = ? /*007-6092019909*/
 </code></pre>
-<p><strong>(2)</strong> Suspending current transaction #1, creating new transaction #2</p>
+</li>
+<li>
+<p>Suspending current transaction #1, creating new transaction #2</p>
 <pre><code class="language-sql">SELECT bookrating0_.id                AS id1_4_,
        bookrating0_.book_id           AS book_id5_4_,
        bookrating0_.number_of_ratings AS number_o2_4_,
@@ -1837,7 +1975,9 @@ FROM   book_rating bookrating0_
                     ON bookrating0_.book_id = book1_.id
 WHERE  book1_.isbn = ? /*007-6092019909*/
 </code></pre>
-<p><strong>(3)</strong> Initiating transaction #2 commit</p>
+</li>
+<li>
+<p>Initiating transaction #2 commit</p>
 <pre><code class="language-sql">UPDATE book_rating
 SET    book_id = ?, /*9*/
        number_of_ratings = ?, /*241*/
@@ -1846,8 +1986,12 @@ SET    book_id = ?, /*9*/
 WHERE  id = ? /*10*/
        AND version = ? /*0*/
 </code></pre>
-<p><strong>(4)</strong> Resuming suspended transaction #1 after completion of inner transaction #2</p>
-<p><strong>(5)</strong> Initiating transaction #1 commit</p>
+</li>
+<li>
+<p>Resuming suspended transaction #1 after completion of inner transaction #2</p>
+</li>
+<li>
+<p>Initiating transaction #1 commit</p>
 <pre><code class="language-sql">UPDATE book_rating
 SET    book_id = ?, /*9*/
        number_of_ratings = ?, /*241*/
@@ -1856,8 +2000,14 @@ SET    book_id = ?, /*9*/
 WHERE  id = ? /*10*/
        AND version = ? /*0*/
 </code></pre>
-<p><strong>(6)</strong> Optimistic locking failed; nested exception is <code>org.hibernate.StaleObjectStateException</code> Row was updated or deleted by another transaction (or unsaved-value mapping was incorrect)</p>
-<p><strong>(7)</strong> Initiating transaction #1 rollback after commit exception</p>
+</li>
+<li>
+<p>Optimistic locking failed; nested exception is <code>org.hibernate.StaleObjectStateException</code> Row was updated or deleted by another transaction (or unsaved-value mapping was incorrect)</p>
+</li>
+<li>
+<p>Initiating transaction #1 rollback after commit exception</p>
+</li>
+</ol>
 <h4><a name="502c2256dbc0a223143500d9f9b3b5cc"></a>Explicit optimistic lock <code>@Lock(OPTIMISTIC)</code></h4>
 <p><code>com.example.spring.data.jpa.repository.BookRatingRepository</code></p>
 <pre><code class="language-java">@Lock(OPTIMISTIC)
@@ -1900,7 +2050,9 @@ void explicitOptimisticLock() {
 }
 </code></pre>
 <p>The following SQL queries are executed.</p>
-<p><strong>(1)</strong> Creating new transaction #1</p>
+<ol>
+<li>
+<p>Creating new transaction #1</p>
 <pre><code class="language-sql">SELECT bookrating0_.id                AS id1_4_,
        bookrating0_.book_id           AS book_id5_4_,
        bookrating0_.number_of_ratings AS number_o2_4_,
@@ -1911,7 +2063,9 @@ FROM   book_rating bookrating0_
                     ON bookrating0_.book_id = book1_.id
 WHERE  book1_.isbn = ? /*007-6092019909*/
 </code></pre>
-<p><strong>(2)</strong> Suspending current transaction #1, creating new transaction #2</p>
+</li>
+<li>
+<p>Suspending current transaction #1, creating new transaction #2</p>
 <pre><code class="language-sql">SELECT bookrating0_.id                AS id1_4_,
        bookrating0_.book_id           AS book_id5_4_,
        bookrating0_.number_of_ratings AS number_o2_4_,
@@ -1922,7 +2076,9 @@ FROM   book_rating bookrating0_
                     ON bookrating0_.book_id = book1_.id
 WHERE  book1_.isbn = ? /*007-6092019909*/
 </code></pre>
-<p><strong>(3)</strong> Initiating transaction #2 commit</p>
+</li>
+<li>
+<p>Initiating transaction #2 commit</p>
 <pre><code class="language-sql">UPDATE book_rating
 SET    book_id = ?, /*9*/
        number_of_ratings = ?, /*241*/
@@ -1931,14 +2087,24 @@ SET    book_id = ?, /*9*/
 WHERE  id = ? /*6*/
        AND version = ? /*0*/
 </code></pre>
-<p><strong>(4)</strong> Resuming suspended transaction #1 after completion of inner transaction #2</p>
-<p><strong>(5)</strong> Initiating transaction #1 commit</p>
+</li>
+<li>
+<p>Resuming suspended transaction #1 after completion of inner transaction #2</p>
+</li>
+<li>
+<p>Initiating transaction #1 commit</p>
 <pre><code class="language-sql">SELECT version
 FROM   book_rating
 WHERE  id = ? /*6*/
 </code></pre>
-<p><strong>(6)</strong> Optimistic locking failed; nested exception is <code>org.hibernate.OptimisticLockException</code></p>
-<p><strong>(7)</strong> Initiating transaction #1 rollback after commit exception</p>
+</li>
+<li>
+<p>Optimistic locking failed; nested exception is <code>org.hibernate.OptimisticLockException</code></p>
+</li>
+<li>
+<p>Initiating transaction #1 rollback after commit exception</p>
+</li>
+</ol>
 <h4><a name="6efaef54090120ae008692898745a547"></a>Explicit optimistic lock <code>@Lock(OPTIMISTIC_FORCE_INCREMENT)</code></h4>
 <p><code>com.example.spring.data.jpa.repository.BookRatingRepository</code></p>
 <pre><code class="language-java">@Lock(OPTIMISTIC_FORCE_INCREMENT)
@@ -1978,7 +2144,9 @@ void explicitOptimisticForceIncrementLock() {
 }
 </code></pre>
 <p>The following SQL queries are executed.</p>
-<p><strong>(1)</strong> Creating new transaction #1</p>
+<ol>
+<li>
+<p>Creating new transaction #1</p>
 <pre><code class="language-sql">SELECT bookrating0_.id                AS id1_4_,
        bookrating0_.book_id           AS book_id5_4_,
        bookrating0_.number_of_ratings AS number_o2_4_,
@@ -1989,7 +2157,9 @@ FROM   book_rating bookrating0_
                     ON bookrating0_.book_id = book1_.id
 WHERE  book1_.isbn = ? /*007-6092019909*/
 </code></pre>
-<p><strong>(2)</strong> Suspending current transaction #1, creating new transaction #2</p>
+</li>
+<li>
+<p>Suspending current transaction #1, creating new transaction #2</p>
 <pre><code class="language-sql">SELECT bookrating0_.id                AS id1_4_,
        bookrating0_.book_id           AS book_id5_4_,
        bookrating0_.number_of_ratings AS number_o2_4_,
@@ -2000,7 +2170,9 @@ FROM   book_rating bookrating0_
                     ON bookrating0_.book_id = book1_.id
 WHERE  book1_.isbn = ? /*007-6092019909*/
 </code></pre>
-<p><strong>(3)</strong> Initiating transaction #2 commit</p>
+</li>
+<li>
+<p>Initiating transaction #2 commit</p>
 <pre><code class="language-sql">UPDATE book_rating
 SET    book_id = ?, /*9*/
        number_of_ratings = ?, /*241*/
@@ -2009,15 +2181,25 @@ SET    book_id = ?, /*9*/
 WHERE  id = ? /*4*/
        AND version = ? /*0*/
 </code></pre>
-<p><strong>(4)</strong> Resuming suspended transaction #1 after completion of inner transaction #2</p>
-<p><strong>(5)</strong> Initiating transaction #1 commit</p>
+</li>
+<li>
+<p>Resuming suspended transaction #1 after completion of inner transaction #2</p>
+</li>
+<li>
+<p>Initiating transaction #1 commit</p>
 <pre><code class="language-sql">UPDATE book_rating
 SET    version = ? /*1*/
 WHERE  id = ? /*4*/
        AND version = ? /*0*/
 </code></pre>
-<p><strong>(6)</strong> Optimistic locking failed; nested exception is <code>org.hibernate.StaleObjectStateException</code> Row was updated or deleted by another transaction (or unsaved-value mapping was incorrect)</p>
-<p><strong>(7)</strong> Initiating transaction #1 rollback after commit exception</p>
+</li>
+<li>
+<p>Optimistic locking failed; nested exception is <code>org.hibernate.StaleObjectStateException</code> Row was updated or deleted by another transaction (or unsaved-value mapping was incorrect)</p>
+</li>
+<li>
+<p>Initiating transaction #1 rollback after commit exception</p>
+</li>
+</ol>
 <h4><a name="c2b4e4a7c69f6c6b216e05a547731c57"></a>Explicit pessimistic write lock <code>@Lock(PESSIMISTIC_WRITE)</code></h4>
 <p><code>com.example.spring.data.jpa.repository.BookRatingRepository</code></p>
 <pre><code class="language-java">@Lock(PESSIMISTIC_WRITE)
@@ -2067,7 +2249,9 @@ void explicitPessimisticWriteLock() {
 }
 </code></pre>
 <p>The following SQL queries are executed.</p>
-<p><strong>(1)</strong> Creating new transaction #1</p>
+<ol>
+<li>
+<p>Creating new transaction #1</p>
 <pre><code class="language-sql">SELECT bookrating0_.id                AS id1_4_,
        bookrating0_.book_id           AS book_id5_4_,
        bookrating0_.number_of_ratings AS number_o2_4_,
@@ -2079,7 +2263,9 @@ WHERE  bookrating0_.book_id = book1_.id
        AND book1_.isbn = ? /*007-6092019909*/
 FOR UPDATE OF bookrating0_
 </code></pre>
-<p><strong>(2)</strong> Initiating transaction #1 commit</p>
+</li>
+<li>
+<p>Initiating transaction #1 commit</p>
 <pre><code class="language-sql">UPDATE book_rating
 SET    book_id = ?, /*7*/
        number_of_ratings = ?, /*241*/
@@ -2088,7 +2274,9 @@ SET    book_id = ?, /*7*/
 WHERE  id = ? /*8*/
        AND version = ? /*0*/ 
 </code></pre>
-<p><strong>(3)</strong> Creating new transaction #2</p>
+</li>
+<li>
+<p>Creating new transaction #2</p>
 <pre><code class="language-sql">SELECT bookrating0_.id                AS id1_4_,
        bookrating0_.book_id           AS book_id5_4_,
        bookrating0_.number_of_ratings AS number_o2_4_,
@@ -2100,7 +2288,9 @@ WHERE  bookrating0_.book_id = book1_.id
        AND book1_.isbn = ? /*007-6092019909*/
 FOR UPDATE OF bookrating0_
 </code></pre>
-<p><strong>(4)</strong> Initiating transaction #2 commit</p>
+</li>
+<li>
+<p>Initiating transaction #2 commit</p>
 <pre><code class="language-sql">UPDATE book_rating
 SET    book_id = ?, /*7*/
        number_of_ratings = ?, /*242*/
@@ -2109,6 +2299,8 @@ SET    book_id = ?, /*7*/
 WHERE  id = ? /*8*/
        AND version = ? /*1*/
 </code></pre>
+</li>
+</ol>
 <h4><a name="657a4b524b13a122706ee27f7675bcf7"></a>Explicit pessimistic read lock <code>@Lock(PESSIMISTIC_READ)</code></h4>
 <p><code>com.example.spring.data.jpa.repository.BookRatingRepository</code></p>
 <pre><code class="language-java">@Lock(PESSIMISTIC_READ)
@@ -2144,7 +2336,9 @@ void explicitPessimisticReadLock() {
 }
 </code></pre>
 <p>The following SQL queries are executed.</p>
-<p><strong>(1)</strong> Creating new transaction #1</p>
+<ol>
+<li>
+<p>Creating new transaction #1</p>
 <pre><code class="language-sql">SELECT     bookrating0_.id                AS id1_4_,
            bookrating0_.book_id           AS book_id5_4_,
            bookrating0_.number_of_ratings AS number_o2_4_,
@@ -2155,7 +2349,9 @@ CROSS JOIN book book1_
 WHERE      bookrating0_.book_id=book1_.id
 AND        book1_.isbn=? FOR share OF bookrating0_ /*007-6092019909*/
 </code></pre>
-<p><strong>(2)</strong> Suspending current transaction, creating new transaction #2</p>
+</li>
+<li>
+<p>Suspending current transaction, creating new transaction #2</p>
 <pre><code class="language-sql">SELECT     bookrating0_.id                AS id1_4_,
            bookrating0_.book_id           AS book_id5_4_,
            bookrating0_.number_of_ratings AS number_o2_4_,
@@ -2166,8 +2362,14 @@ CROSS JOIN book book1_
 WHERE      bookrating0_.book_id=book1_.id
 AND        book1_.isbn=? FOR share OF bookrating0_ /*007-6092019909*/
 </code></pre>
-<p><strong>(3)</strong> Initiating transaction #1 commit</p>
-<p><strong>(4)</strong> Initiating transaction #2 commit</p>
+</li>
+<li>
+<p>Initiating transaction #1 commit</p>
+</li>
+<li>
+<p>Initiating transaction #2 commit</p>
+</li>
+</ol>
 <h3><a name="532d5a8c2809912b992aa517d1e46ced"></a>Mapping from entity to DTO using MapStruct</h3>
 <p><code>com.example.spring.data.jpa.dto.BookDto</code></p>
 <pre><code class="language-java">@Data
@@ -2309,7 +2511,9 @@ void updateOneToManyRelations() {
 }
 </code></pre>
 <p>The following SQL queries are executed.</p>
-<p><strong>(1)</strong> Find by book ID</p>
+<ol>
+<li>
+<p>Find by book ID</p>
 <pre><code class="language-sql">SELECT &quot;book&quot;.&quot;id&quot;               AS &quot;id&quot;,
        &quot;book&quot;.&quot;isbn&quot;             AS &quot;isbn&quot;,
        &quot;book&quot;.&quot;title&quot;            AS &quot;title&quot;,
@@ -2327,7 +2531,9 @@ ORDER  BY &quot;book_key&quot;
 FROM   &quot;book_category&quot;
 WHERE  &quot;book_category&quot;.&quot;book&quot; = ? /*2*/
 </code></pre>
-<p><strong>(2)</strong> Remove one book author and save book</p>
+</li>
+<li>
+<p>Remove one book author and save book</p>
 <pre><code class="language-sql">UPDATE &quot;book&quot;
 SET    &quot;isbn&quot; = ?, /*978-0321200686*/
        &quot;title&quot; = ?, /*Enterprise Integration Patterns*/
@@ -2360,7 +2566,9 @@ VALUES      (?, /*2*/
 VALUES      (?, /*2*/
               ?) /*2*/
 </code></pre>
-<p><strong>(3)</strong> Remove one book category and save book</p>
+</li>
+<li>
+<p>Remove one book category and save book</p>
 <pre><code class="language-sql">UPDATE &quot;book&quot;
 SET    &quot;isbn&quot; = ?, /*978-0321200686*/
        &quot;title&quot; = ?, /*Enterprise Integration Patterns*/
@@ -2387,6 +2595,8 @@ VALUES      (?, /*2*/
 VALUES      (?, /*2*/
               ?) /*1*/
 </code></pre>
+</li>
+</ol>
 <h4><a name="4a2070d3aad7ff832b5e36f76cc6f731"></a><code>CrudRepository.findById</code></h4>
 <p><code>com.example.spring.data.jdbc.BookRepositoryTest</code></p>
 <pre><code class="language-java">@Test
@@ -2396,7 +2606,9 @@ void findById() {
 }
 </code></pre>
 <p>3 SQL queries are executed.</p>
-<p><strong>(1)</strong> Select book</p>
+<ol>
+<li>
+<p>Select book</p>
 <pre><code class="language-sql">SELECT &quot;book&quot;.&quot;id&quot;               AS &quot;id&quot;,
        &quot;book&quot;.&quot;isbn&quot;             AS &quot;isbn&quot;,
        &quot;book&quot;.&quot;title&quot;            AS &quot;title&quot;,
@@ -2404,18 +2616,24 @@ void findById() {
 FROM   &quot;book&quot;
 WHERE  &quot;book&quot;.&quot;id&quot; = ? /*1*/
 </code></pre>
-<p><strong>(2)</strong> Select authors for the book</p>
+</li>
+<li>
+<p>Select authors for the book</p>
 <pre><code class="language-sql">SELECT &quot;book_author&quot;.&quot;author&quot;   AS &quot;author&quot;,
        &quot;book_author&quot;.&quot;book_key&quot; AS &quot;book_key&quot;
 FROM   &quot;book_author&quot;
 WHERE  &quot;book_author&quot;.&quot;book&quot; = ? /*1*/
 ORDER  BY &quot;book_key&quot;
 </code></pre>
-<p><strong>(3)</strong> Select categories for the book</p>
+</li>
+<li>
+<p>Select categories for the book</p>
 <pre><code class="language-sql">SELECT &quot;book_category&quot;.&quot;category&quot; AS &quot;category&quot;
 FROM   &quot;book_category&quot;
 WHERE  &quot;book_category&quot;.&quot;book&quot; = ? /*1*/
 </code></pre>
+</li>
+</ol>
 <h4><a name="f34c8b22bd6fb5a16c60b7ecd412d675"></a><code>PagingAndSortingRepository.findAll(Pageable)</code></h4>
 <p><code>com.example.spring.data.jdbc.BookRepositoryTest</code></p>
 <pre><code class="language-java">@Test
@@ -2431,7 +2649,9 @@ void findAllWithPageable() {
 }
 </code></pre>
 <p>Query selects 1 book, so 4 SQL queries are executed.</p>
-<p><strong>(1)</strong> Select the 1st book ordering by publication date</p>
+<ol>
+<li>
+<p>Select the 1st book ordering by publication date</p>
 <pre><code class="language-sql">SELECT &quot;book&quot;.&quot;id&quot;               AS &quot;id&quot;,
        &quot;book&quot;.&quot;isbn&quot;             AS &quot;isbn&quot;,
        &quot;book&quot;.&quot;title&quot;            AS &quot;title&quot;,
@@ -2440,22 +2660,30 @@ FROM   &quot;book&quot;
 ORDER  BY publication_date ASC
 LIMIT  1 offset 0
 </code></pre>
-<p><strong>(2)</strong> Select authors for the book</p>
+</li>
+<li>
+<p>Select authors for the book</p>
 <pre><code class="language-sql">SELECT &quot;book_author&quot;.&quot;author&quot;   AS &quot;author&quot;,
        &quot;book_author&quot;.&quot;book_key&quot; AS &quot;book_key&quot;
 FROM   &quot;book_author&quot;
 WHERE  &quot;book_author&quot;.&quot;book&quot; = ? /*1*/
 ORDER  BY &quot;book_key&quot;
 </code></pre>
-<p><strong>(3)</strong> Select categories for the book</p>
+</li>
+<li>
+<p>Select categories for the book</p>
 <pre><code class="language-sql">SELECT &quot;book_category&quot;.&quot;category&quot; AS &quot;category&quot;
 FROM   &quot;book_category&quot;
 WHERE  &quot;book_category&quot;.&quot;book&quot; = ? /*1*/
 </code></pre>
-<p><strong>(4)</strong> Count all books</p>
+</li>
+<li>
+<p>Count all books</p>
 <pre><code class="language-sql">SELECT Count(*)
 FROM   &quot;book&quot;
 </code></pre>
+</li>
+</ol>
 <h4><a name="fe9f09d7c10598e080ef1ac1502711df"></a><code>@Query</code> with SQL</h4>
 <p>Spring Data JDBC is also a subject to &quot;N+1 selects problem&quot;.</p>
 <p><code>com.example.spring.data.jdbc.repository.BookRepository</code></p>
@@ -2474,36 +2702,48 @@ void queryMethod() {
 }
 </code></pre>
 <p>Query selects 2 books, so 5 SQL queries are executed.</p>
-<p><strong>(1)</strong> Select books</p>
+<ol>
+<li>
+<p>Select books</p>
 <pre><code class="language-sql">SELECT *
 FROM   book
 WHERE  title LIKE Concat('%', ?, '%') /*Pattern*/
 ORDER  BY publication_date
 </code></pre>
-<p><strong>(2)</strong> Select authors for the 1st book from the result set</p>
+</li>
+<li>
+<p>Select authors for the 1st book from the result set</p>
 <pre><code class="language-sql">SELECT &quot;book_author&quot;.&quot;author&quot;   AS &quot;author&quot;,
        &quot;book_author&quot;.&quot;book_key&quot; AS &quot;book_key&quot;
 FROM   &quot;book_author&quot;
 WHERE  &quot;book_author&quot;.&quot;book&quot; = ? /*1*/
 ORDER  BY &quot;book_key&quot;
 </code></pre>
-<p><strong>(3)</strong> Select categories for the 1st book from the result set</p>
+</li>
+<li>
+<p>Select categories for the 1st book from the result set</p>
 <pre><code class="language-sql">SELECT &quot;book_category&quot;.&quot;category&quot; AS &quot;category&quot;
 FROM   &quot;book_category&quot;
 WHERE  &quot;book_category&quot;.&quot;book&quot; = ? /*1*/
 </code></pre>
-<p><strong>(4)</strong> Select authors for the 2nd book from the result set</p>
+</li>
+<li>
+<p>Select authors for the 2nd book from the result set</p>
 <pre><code class="language-sql">SELECT &quot;book_author&quot;.&quot;author&quot;   AS &quot;author&quot;,
        &quot;book_author&quot;.&quot;book_key&quot; AS &quot;book_key&quot;
 FROM   &quot;book_author&quot;
 WHERE  &quot;book_author&quot;.&quot;book&quot; = ? /*2*/
 ORDER  BY &quot;book_key&quot;
 </code></pre>
-<p><strong>(5)</strong> Select categories for the 2nd book from the result set</p>
+</li>
+<li>
+<p>Select categories for the 2nd book from the result set</p>
 <pre><code class="language-sql">SELECT &quot;book_category&quot;.&quot;category&quot; AS &quot;category&quot;
 FROM   &quot;book_category&quot;
 WHERE  &quot;book_category&quot;.&quot;book&quot; = ? /*2*/
 </code></pre>
+</li>
+</ol>
 <h4><a name="ce75f4a17b574599267b2a18924cb931"></a><code>@Query</code> with SQL join</h4>
 <p>Spring Data JDBC doesn't have a solution to &quot;N+1 selects problem&quot;.
 <code>JOIN</code> in SQL query leads to duplicates in the result set.
@@ -2560,29 +2800,39 @@ void queryMethodWithPagination() {
 }
 </code></pre>
 <p>Query selects 1 book, so 4 SQL queries are executed.</p>
-<p><strong>(1)</strong> Select book</p>
+<ol>
+<li>
+<p>Select book</p>
 <pre><code class="language-sql">SELECT   *
 FROM     book
 WHERE    title LIKE Concat('%', ?, '%') /*Pattern*/
 ORDER BY publication_date offset ?FETCH next ? rows only /*1,1*/ 
 </code></pre>
-<p><strong>(2)</strong> Select authors for the book</p>
+</li>
+<li>
+<p>Select authors for the book</p>
 <pre><code class="language-sql">SELECT &quot;book_author&quot;.&quot;author&quot;   AS &quot;author&quot;,
        &quot;book_author&quot;.&quot;book_key&quot; AS &quot;book_key&quot;
 FROM   &quot;book_author&quot;
 WHERE  &quot;book_author&quot;.&quot;book&quot; = ? /*2*/
 ORDER  BY &quot;book_key&quot; 
 </code></pre>
-<p><strong>(3)</strong> Select categories for the book</p>
+</li>
+<li>
+<p>Select categories for the book</p>
 <pre><code class="language-sql">SELECT &quot;book_category&quot;.&quot;category&quot; AS &quot;category&quot;
 FROM   &quot;book_category&quot;
 WHERE  &quot;book_category&quot;.&quot;book&quot; = ? /*2*/
 </code></pre>
-<p><strong>(4)</strong> Count books</p>
+</li>
+<li>
+<p>Count books</p>
 <pre><code class="language-sql">SELECT Count(*)
 FROM   book
 WHERE  title LIKE Concat('%', ?, '%') /*Pattern*/
 </code></pre>
+</li>
+</ol>
 <h3><a name="9a3347442ef97064c198bda69c16f816"></a>Locking strategies</h3>
 <p><code>com.example.spring.data.jdbc.entity.BookRating</code></p>
 <pre><code class="language-java">@Data
@@ -2653,7 +2903,9 @@ void implicitOptimisticLock() {
 }
 </code></pre>
 <p>The following SQL queries are executed.</p>
-<p><strong>(1)</strong> Creating new transaction #1</p>
+<ol>
+<li>
+<p>Creating new transaction #1</p>
 <pre><code class="language-sql">SELECT &quot;book_rating&quot;.&quot;id&quot;                AS &quot;id&quot;,
        &quot;book_rating&quot;.&quot;book&quot;              AS &quot;book&quot;,
        &quot;book_rating&quot;.&quot;rating&quot;            AS &quot;rating&quot;,
@@ -2662,7 +2914,9 @@ void implicitOptimisticLock() {
 FROM   &quot;book_rating&quot;
 WHERE  &quot;book_rating&quot;.&quot;id&quot; = ? /*1*/
 </code></pre>
-<p><strong>(2)</strong> Suspending current transaction #1, creating new transaction #2</p>
+</li>
+<li>
+<p>Suspending current transaction #1, creating new transaction #2</p>
 <pre><code class="language-sql">SELECT &quot;book_rating&quot;.&quot;id&quot;                AS &quot;id&quot;,
        &quot;book_rating&quot;.&quot;book&quot;              AS &quot;book&quot;,
        &quot;book_rating&quot;.&quot;rating&quot;            AS &quot;rating&quot;,
@@ -2679,8 +2933,12 @@ SET    &quot;version&quot; = ?, /*2*/
 WHERE  &quot;book_rating&quot;.&quot;id&quot; = ? /*1*/
        AND &quot;book_rating&quot;.&quot;version&quot; = ? /*1*/
 </code></pre>
-<p><strong>(3)</strong> Initiating transaction #2 commit</p>
-<p><strong>(4)</strong> Resuming suspended transaction #1 after completion of inner transaction #2</p>
+</li>
+<li>
+<p>Initiating transaction #2 commit</p>
+</li>
+<li>
+<p>Resuming suspended transaction #1 after completion of inner transaction #2</p>
 <pre><code class="language-sql">UPDATE &quot;book_rating&quot;
 SET    &quot;version&quot; = ?, /*2*/
        &quot;book&quot; = ?, /*1*/
@@ -2689,8 +2947,14 @@ SET    &quot;version&quot; = ?, /*2*/
 WHERE  &quot;book_rating&quot;.&quot;id&quot; = ? /*1*/
        AND &quot;book_rating&quot;.&quot;version&quot; = ? /*1*/
 </code></pre>
-<p><strong>(5)</strong> Optimistic locking failed; nested exception is <code>org.springframework.dao.OptimisticLockingFailureException</code></p>
-<p><strong>(6)</strong> Initiating transaction #1 rollback after exception</p>
+</li>
+<li>
+<p>Optimistic locking failed; nested exception is <code>org.springframework.dao.OptimisticLockingFailureException</code></p>
+</li>
+<li>
+<p>Initiating transaction #1 rollback after exception</p>
+</li>
+</ol>
 <h3><a name="532d5a8c2809912b992aa517d1e46ced"></a>Mapping from entity to DTO using MapStruct</h3>
 <p><code>com.example.spring.data.jdbc.dto.BookDto</code></p>
 <pre><code class="language-java">@Data
@@ -2860,17 +3124,23 @@ void queryMethodWithPagination() {
 }
 </code></pre>
 <p>2 SQL queries are executed.</p>
-<p><strong>(1)</strong> Select books</p>
+<ol>
+<li>
+<p>Select books</p>
 <pre><code class="language-sql">SELECT   *
 FROM     book
 WHERE    title LIKE Concat('%', :title, '%')
 ORDER BY publication_date offset :startFETCH next :rowCount rows only 
 </code></pre>
-<p><strong>(2)</strong> Count books</p>
+</li>
+<li>
+<p>Count books</p>
 <pre><code class="language-sql">SELECT Count(*)
 FROM   book
 WHERE  title LIKE Concat('%', :title, '%')
 </code></pre>
+</li>
+</ol>
 <h4><a name="532d5a8c2809912b992aa517d1e46ced"></a>Mapping from entity to DTO using MapStruct</h4>
 <p>Fetching associations and mapping to DTO are not easy tasks with Spring Data R2DBC.
 The parent entity has to be merged with its associations.
