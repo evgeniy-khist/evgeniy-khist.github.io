@@ -36,6 +36,6 @@ node build.js "${projects[@]}"
 for project in ${projects[@]}; do
   echo "Cleaning up $project"
   rm -rf "${project}/src"
-  find "${project}/" -type f ! -name '*.html' -and ! -name '*.js' -and ! -name '*.css' -and ! -name '*.jpg' -and ! -name '*.jpeg' -and ! -name '*.png' -and ! -name '*.gif' -delete
+  find "${project}/" -type f ! -name '*.html' -and ! -name '*.js' -and ! -name '*.css' -and ! -name '*.jpg' -and ! -name '*.jpeg' -and ! -name '*.png' -and ! -name '*.gif' -and ! -name '*.sql' -delete
   find "${project}/" -type d -empty -delete
 done
