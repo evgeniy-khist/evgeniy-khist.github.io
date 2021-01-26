@@ -101,7 +101,7 @@
       data-size="large" data-show-count="true" aria-label="Fork evgeniy-khist/postgresql-performance-essentials on GitHub">Fork</a>
   </div>
   <div class="column has-text-right has-text-grey">
-    <time datetime="2021-01-22">22 Jan 2021</time>
+    <time datetime="2021-01-26">26 Jan 2021</time>
   </div>
 </div>
 
@@ -1026,12 +1026,11 @@ It has to be preloaded using <code>shared_preload_libraries=pg_stat_statements</
        ROUND(mean_exec_time::numeric, 2) AS mean,
        query
   FROM pg_stat_statements
+ ORDER BY total_exec_time DESC
+ LIMIT 20;
 </code></pre>
 </li>
 </ol>
-<p>ORDER BY total_exec_time DESC
-LIMIT 20;
-```</p>
 <hr>
 <ul>
 <li><a href="https://www.postgresql.org/docs/13/runtime-config-client.html#RUNTIME-CONFIG-CLIENT-PRELOAD">https://www.postgresql.org/docs/13/runtime-config-client.html#RUNTIME-CONFIG-CLIENT-PRELOAD</a></li>
