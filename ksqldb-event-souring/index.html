@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Event Sourcing with Kafka and ksqlDB</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css" />
+  <link rel="stylesheet" href="/css/prism.min.css" />
+
+  <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+  <script async defer src="https://buttons.github.io/buttons.js"></script>
+  <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+    integrity="sha256-pasqAKBDmFT4eHoN2ndd6lN370kFiGUFyTiUHWhU7k8=" crossorigin="anonymous"></script>
+    
+  <script>
+    $(document).ready(function () {
+      $(".navbar-burger").click(function () {
+        $(".navbar-burger").toggleClass("is-active");
+        $(".navbar-menu").toggleClass("is-active");
+      });
+    });
+  </script>
+</head>
+
+<body>
+  <nav class="navbar is-light" role="navigation" aria-label="main navigation">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://github.com/evgeniy-khist" target="_blank">
+        <span class="tag is-link is-medium">
+          <span class="icon">
+            <i class="fab fa-github"></i>
+          </span>
+          <span> evgeniy-khist</span>
+        </span>
+      </a>
+
+      <a role="button" class="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="navMenu">
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+      </a>
+    </div>
+
+    <div id="navMenu" class="navbar-menu">
+      <div class="navbar-start">
+        <a class="navbar-item" href="/">
+          Home
+        </a>
+
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link">
+            Projects
+          </a>
+
+          <div class="navbar-dropdown">
+              <a class="navbar-item" href="/spring-data-examples/">
+                Spring Data JPA pitfalls and modern alternatives: Spring Data JDBC and Spring Data R2DBC
+              </a>
+              <a class="navbar-item" href="/postgresql-performance-essentials/">
+                PostgreSQL Performance Essentials in 1 Hour
+              </a>
+              <a class="navbar-item" href="/eventstoredb-event-sourcing/">
+                Event Sourcing with EventStoreDB
+              </a>
+              <a class="navbar-item" href="/postgresql-event-sourcing/">
+                Event Sourcing with PostgreSQL
+              </a>
+              <a class="navbar-item" href="/ksqldb-event-souring/">
+                Event Sourcing with Kafka and ksqlDB
+              </a>
+              <a class="navbar-item" href="/spring-kafka-non-blocking-retries-and-dlt/">
+                Spring Kafka Non-Blocking Retries and Dead Letter Topics
+              </a>
+              <a class="navbar-item" href="/geohash-example/">
+                Rents Map - Geohash Example
+              </a>
+              <a class="navbar-item" href="/pairwise-comparison/">
+                Pairwise Comparison Method
+              </a>
+              <a class="navbar-item" href="/letsencrypt-docker-compose/">
+                Nginx and Let’s Encrypt with Docker Compose in less than 3 minutes
+              </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="navbar-end">
+        <div class="navbar-item">
+          <a class="github-button" href="https://github.com/evgeniy-khist" data-size="large" data-show-count="true"
+            aria-label="Follow @evgeniy-khist on GitHub">Follow @evgeniy-khist</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero is-light">
+    <div class="hero-body">
+      <div class="container">
+        <h1 class="title">
+          Evgeniy Khyst's Tech Blog
+        </h1>
+        <h2 class="subtitle">
+          Samples and articles
+        </h2>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+<div class="columns">
+  <div class="column">
+    <a class="github-button" href="https://github.com/evgeniy-khist/ksqldb-event-souring" data-icon="octicon-star"
+      data-size="large" data-show-count="true" aria-label="Star evgeniy-khist/ksqldb-event-souring on GitHub">Star</a>
+    <a class="github-button" href="https://github.com/evgeniy-khist/ksqldb-event-souring/fork" data-icon="octicon-repo-forked"
+      data-size="large" data-show-count="true" aria-label="Fork evgeniy-khist/ksqldb-event-souring on GitHub">Fork</a>
+  </div>
+  <div class="column has-text-right has-text-grey">
+    <time datetime="2021-05-04">4 May 2021</time>
+  </div>
+</div>
+
+<div class="content">
+<h1>Event Sourcing with Kafka and ksqlDB</h1>
+<ul>
+<li><a href="#0b79795d3efc95b9976c7c5b933afce2">Introduction</a></li>
+<li><a href="#8753dff3c2879207fa06ef1844b1ea4d">Example Domain</a></li>
+<li><a href="#19025f75ca30ec4a46f55a6b9afdeba6">Event Sourcing and CQRS 101</a>
+<ul>
+<li><a href="#436b314e78fec59a76bad8b93b52ee75">State-Oriented Persistence</a></li>
+<li><a href="#c4b3d1c8edab1825366ac1d541d8226f">Event Sourcing</a></li>
+<li><a href="#b2cf9293622451d86574d2973398ca70">CQRS</a></li>
+<li><a href="#cc00871be6276415cfb13eb24e97fe48">Advantages of CQRS</a></li>
+<li><a href="#845b7e034fb763fcdf57e9467c0a8707">Advantages of Event Sourcing</a></li>
+</ul>
+</li>
+<li><a href="#70b356f41293ace9df0d04cd8175ac35">Requirements for Event Store</a></li>
+<li><a href="#9f6302143996033ebb94d536b860acc3">Solution Architecture</a>
+<ul>
+<li><a href="#7a5c6b7581644459b2452045e4b3584d">Kafka Topic Architecture</a></li>
+<li><a href="#942a78423f55c5226a507463acf7be49">ksqlDB Streams vs Tables</a></li>
+<li><a href="#41e46dfc4197bfe5135c9953cd4eb8b7">ksqlDb Event Store</a>
+<ul>
+<li><a href="#b55137335b62df2ead97b0ae0f1d7722">Naive Solution (Not Working!)</a></li>
+<li><a href="#c60b741f731650358e295c4598f5b9fd">Working Solution</a>
+<ul>
+<li><a href="#205928bf89c3012be2e11d1e5e7ad01f">Permanent Storage</a></li>
+<li><a href="#6eec4db0e612f3a70dab7d96c463e8f6">Optimistic concurrency control</a></li>
+<li><a href="#323effe18de24bcc666f161931c903f3">Loading current state</a></li>
+<li><a href="#784ff5dca3b046266edf61637822bbff">Subscribe to all events by aggregate type</a></li>
+<li><a href="#0b584912c4fa746206884e080303ed49">Checkpoints</a></li>
+<li><a href="#0cfc0523189294ac086e11c8e286ba2d">Drawbacks</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#56a081f86b7ec6a7d523c7e6d186f1a3">Why ksqlDB?</a></li>
+<li><a href="#53af957fc9dc9f7083531a00fe3f364e">How to Run the Sample?</a></li>
+</ul>
+<h2><a name="0b79795d3efc95b9976c7c5b933afce2"></a>Introduction</h2>
+<p>Kafka is not for event sourcing, isn't it?</p>
+<p>Kafka alone is not an event store, but Kafka and ksqlDB together allow building full-featured event
+stores.</p>
+<p>This repository provides a sample of event sourced system that uses Kafka and ksqlDB as event store.</p>
+<p><img src="img/kafka-logo.png" alt="Kafka Logo">
+<img src="img/ksqldb-logo.png" alt="ksqlDB Logo"></p>
+<p>See also</p>
+<ul>
+<li><a href="https://github.com/evgeniy-khist/postgresql-event-sourcing">Event Sourcing with PostgreSQL</a></li>
+<li><a href="https://github.com/evgeniy-khist/eventstoredb-event-sourcing">Event Sourcing with EventStoreDB</a></li>
+</ul>
+<h2><a name="8753dff3c2879207fa06ef1844b1ea4d"></a>Example Domain</h2>
+<p>This sample uses heavily simplified ride hailing domain model inspired
+by <a href="https://careers.uklon.ua/">tech/uklon</a> experience.</p>
+<ul>
+<li>A rider can place an order for a ride along a route specifying a price.</li>
+<li>A driver can accept and complete an order.</li>
+<li>An order can be cancelled before completion.</li>
+</ul>
+<p><img src="img/domain-1.png" alt="Domain use case diagram"></p>
+<p><img src="img/domain-2.png" alt="Domain state diagram"></p>
+<h2><a name="19025f75ca30ec4a46f55a6b9afdeba6"></a>Event Sourcing and CQRS 101</h2>
+<h3><a name="436b314e78fec59a76bad8b93b52ee75"></a>State-Oriented Persistence</h3>
+<p><img src="img/es-cqrs-state-oriented-persistence.png" alt="State-oriented persistence"></p>
+<h3><a name="c4b3d1c8edab1825366ac1d541d8226f"></a>Event Sourcing</h3>
+<p>Event sourcing persists the state of an entity as a sequence of immutable state-changing events.</p>
+<p><img src="img/event-sourcing-1.png" alt="Event sourcing"></p>
+<p>Whenever the state of an entity changes, a new event is appended to the list of events.</p>
+<p><img src="img/event-sourcing-2.png" alt="Event sourcing"></p>
+<p>Current state of an entity can be restored by replaying all its events.</p>
+<p>Event sourcing is best suited for short-living entities with relatively small total number of
+event (like orders).</p>
+<p>Restoring the state of the short-living entity by replaying all its events doesn't have any
+performance impact. Thus, no optimizations for restoring state are required for short-living
+entities.</p>
+<p>For endlessly stored entities (like users or bank accounts) with thousands of events restoring state
+by replaying all events is not optimal and snapshotting should be considered.</p>
+<p>Snapshotting is an optimization technique where a snapshot of the aggregate's state is also saved,
+so an application can restore the current state of an aggregate from the snapshot instead of from
+scratch.</p>
+<p><img src="img/event-sourcing-snapshotting.png" alt="Snapshotting in event souring"></p>
+<p>An entity in event sourcing is also referenced as an aggregate.</p>
+<p>A sequence of events for the same aggregate are also referenced as a stream.</p>
+<h3><a name="b2cf9293622451d86574d2973398ca70"></a>CQRS</h3>
+<p>CQRS (Command-query responsibility segregation) stands for segregating the responsibility between
+commands (write requests) and queries (read requests). The write requests and the read requests are
+processed by different handlers.</p>
+<p>A command generates zero or more events or results in an error.</p>
+<p><img src="img/cqrs-1.png" alt="CQRS"></p>
+<p>CQRS is a self-sufficient architectural pattern and doesn't require event sourcing.</p>
+<p>Event sourcing is usually used in conjunction with CQRS. Event store is used as a write database and
+SQL or NoSQL database as a read database.</p>
+<p><img src="img/cqrs-2.png" alt="CQRS"></p>
+<p>Events in event sourcing are a part of a bounded context and should not be used &quot;as-is&quot; for
+integration with other bounded contexts. Integration events representing the current state of an
+aggregate should be used for communication between bounded contexts instead of a raw event sourcing
+change events.</p>
+<h3><a name="cc00871be6276415cfb13eb24e97fe48"></a>Advantages of CQRS</h3>
+<ul>
+<li>Independent scaling of the read and write databases.</li>
+<li>Optimized data schema for the read database (e.g. the read databases can be denormalized).</li>
+<li>Simpler queries (e.g. complex <code>JOIN</code> operations can be avoided).</li>
+</ul>
+<h3><a name="845b7e034fb763fcdf57e9467c0a8707"></a>Advantages of Event Sourcing</h3>
+<ul>
+<li>Having a true history of the system (audit and traceability).</li>
+<li>Ability to put the system in any prior state (e.g. for debugging).</li>
+<li>Read-side projections can be created as needed (later) from events. It allows responding to future
+needs and new requirements.</li>
+</ul>
+<h2><a name="70b356f41293ace9df0d04cd8175ac35"></a>Requirements for Event Store</h2>
+<ul>
+<li>Permanent storage. Store events forever.</li>
+<li>Optimistic concurrency control. Prevent lost update anomaly (write-write conflicts).</li>
+<li>Loading current state. Loading all previous events for the particular aggregate ID from an event
+store.</li>
+<li>Subscribe to all events by aggregate type. Instead of subscribing to a single event stream that
+represents an aggregate.</li>
+<li>Checkpoints. Store the event offset (a position in the stream) after handling it. Subscribe from
+the last known position instead of the stream start after the application restart.</li>
+</ul>
+<h2><a name="9f6302143996033ebb94d536b860acc3"></a>Solution Architecture</h2>
+<h3><a name="7a5c6b7581644459b2452045e4b3584d"></a>Kafka Topic Architecture</h3>
+<p><img src="img/kafka-topics-architecture.png" alt="Kafka topic architecture"></p>
+<ul>
+<li>Topics are partitioned, meaning a topic is spread over a number of &quot;buckets&quot;.</li>
+<li>Kafka preserves the order of messages within a partition. If messages were sent from the producer
+in a specific order, the broker will write them to a partition in that order and all consumers
+will read them in that order.</li>
+<li>Keys are used to decide to which partition message will go. All messages with the same key will go
+to the same partition.</li>
+<li>In one consumer group, each partition will be processed by one consumer only.</li>
+<li>Consumer commits an offset of a message after processing it. Thus, consumer will continue
+consuming messages from where it left off in the offset after a restart.</li>
+</ul>
+<h3><a name="942a78423f55c5226a507463acf7be49"></a>ksqlDB Streams vs Tables</h3>
+<p>A stream is a partitioned, immutable, append-only collection that represents a series of historical
+facts.</p>
+<p>A table is a mutable, partitioned collection that models change over time and represents what is
+true as of &quot;now&quot;.</p>
+<p><img src="img/ksqldb-1.png" alt="ksqlDB stream vs table example"></p>
+<p>Both steams and tables are backed by a Kafka topic.</p>
+<p>The current state of a table is stored locally and ephemerally on a specific server by
+using <a href="https://rocksdb.org/">RocksDB</a>. The series of changes that are applied to a table is stored
+durably in a Kafka topic.</p>
+<p><img src="img/ksqldb-2.png" alt="ksqlDB streams and tables duality"></p>
+<h3><a name="41e46dfc4197bfe5135c9953cd4eb8b7"></a>ksqlDb Event Store</h3>
+<h4><a name="b55137335b62df2ead97b0ae0f1d7722"></a>Naive Solution (Not Working!)</h4>
+<ol>
+<li>Commands are not persisted.</li>
+<li><code>ORDER_EVENTS</code> stream for storing events with <code>AGGREGATE_ID</code> as a key.</li>
+<li><code>ORDER_AGGREGATES</code> table aggregates events by <code>AGGREGATE_ID</code> (a key).</li>
+<li>Command handler reads by ID aggregate events from <code>ORDER_AGGREGATES</code> table and appends new events
+to <code>ORDER_EVENTS</code> stream.</li>
+</ol>
+<pre><code class="language-sql">CREATE STREAM ORDER_EVENTS (
+  AGGREGATE_ID STRING KEY,
+  TYPE STRING,
+  JSON_DATA STRING
+) WITH (
+  KAFKA_TOPIC='order-events',
+  PARTITIONS=10,
+  REPLICAS=1,
+  VALUE_FORMAT='JSON'
+);
+
+CREATE TABLE ORDER_AGGREGATES WITH (
+  KAFKA_TOPIC='order-aggregates',
+  PARTITIONS=10,
+  REPLICAS=1,
+  VALUE_FORMAT='JSON'
+) AS SELECT
+  AGGREGATE_ID,
+  COLLECT_LIST(TYPE) AS TYPE_LIST,
+  COLLECT_LIST(JSON_DATA) AS JSON_DATA_LIST
+FROM ORDER_COMMANDS_AND_EVENTS
+GROUP BY AGGREGATE_ID
+EMIT CHANGES;
+</code></pre>
+<p>ksqlDB persistent query that does the stream aggregation into a table runs as a background process.</p>
+<p><strong>There is no guarantee that the command handler will read the latest version of the aggregate.</strong></p>
+<p><img src="img/ksqldb-naive-event-store.png" alt="ksqlDB event store not working solution"></p>
+<h4><a name="c60b741f731650358e295c4598f5b9fd"></a>Working Solution</h4>
+<p><img src="img/ksqldb-event-store-1.png" alt="ksqlDB event store high-level"></p>
+<ol>
+<li>Commands and events are persistent in the same stream <code>ORDER_COMMANDS_AND_EVENTS</code>
+with <code>AGGREGATE_ID</code>
+as a key to preserve ordering.</li>
+<li><code>ORDER_AGGREGATES</code> table aggregates commands and events (<code>COLLECT_LIST</code>) by <code>AGGREGATE_ID</code> (a
+key).</li>
+<li>Command handler consumes commands from <code>order-aggregates</code> topic where changes
+in <code>ORDER_AGGREGATES</code> are published. Thus, processing command B that follows command A, it will
+be possible to read all previous events generated by command A.</li>
+<li>Event handler consumes events form <code>order-aggregates</code> topic, updates the read database and sends
+integration events.</li>
+</ol>
+<pre><code class="language-sql">CREATE STREAM IF NOT EXISTS ORDER_COMMANDS_AND_EVENTS (
+  AGGREGATE_ID STRING KEY,
+  IS_COMMAND BOOLEAN,
+  TYPE STRING,
+  JSON_DATA STRING
+) WITH (
+  KAFKA_TOPIC='order-commands-and-events',
+  PARTITIONS=10,
+  REPLICAS=1,
+  VALUE_FORMAT='JSON'
+);
+
+CREATE TABLE IF NOT EXISTS ORDER_AGGREGATES WITH (
+  KAFKA_TOPIC='order-aggregates',
+  PARTITIONS=10,
+  REPLICAS=1,
+  VALUE_FORMAT='JSON'
+) AS SELECT
+  AGGREGATE_ID,
+  COLLECT_LIST(IS_COMMAND) AS IS_COMMAND_LIST,
+  COLLECT_LIST(TYPE) AS TYPE_LIST,
+  COLLECT_LIST(JSON_DATA) AS JSON_DATA_LIST
+FROM ORDER_COMMANDS_AND_EVENTS
+GROUP BY AGGREGATE_ID
+EMIT CHANGES;
+</code></pre>
+<p>All parts together look like this</p>
+<p><img src="img/ksqldb-event-store-2.png" alt="ksqlDB event store"></p>
+<h5><a name="205928bf89c3012be2e11d1e5e7ad01f"></a>Permanent Storage</h5>
+<p>Events can be stored in Kafka topics permanently.</p>
+<p>To set retention to &quot;forever&quot; set properties in <code>kafka.properties</code></p>
+<pre><code class="language-properties">log.retention.ms=-1
+log.retention.bytes=-1
+</code></pre>
+<p>or environment variables for <code>confluentinc/cp-kafka</code> image</p>
+<pre><code class="language-yaml">KAFKA_LOG_RETENTION_MS: -1
+KAFKA_LOG_RETENTION_BYTES: -1
+</code></pre>
+<p>For storing huge volumes of data in Kafka
+use <a href="https://www.confluent.io/blog/infinite-kafka-storage-in-confluent-platform/">Tired Storage</a>.</p>
+<h5><a name="6eec4db0e612f3a70dab7d96c463e8f6"></a>Optimistic concurrency control</h5>
+<p><strong>Command must generate one or more events</strong> in order to implement optimistic concurrency control.</p>
+<p>Commands and events for the same aggregate are processed sequentially because:</p>
+<ul>
+<li>Messages with the same key goes to the same partition.</li>
+<li>Kafka preserves the order of messages within a partition.</li>
+<li>Each partition is processed by one consumer only.</li>
+</ul>
+<p>Thus, optimistic concurrency control based on version check can be implemented:</p>
+<ol>
+<li>Actual aggregate version must match the expected version specified in a command.</li>
+<li>The last entry from the stream must be a command, and the last but one must be an event. If both
+entries (the last and the last but one) are commands, it's a concurrent modification.</li>
+</ol>
+<pre><code class="language-java">class OrderCommandHandler {
+
+  // ...
+  private boolean checkVersionMatches(
+      Command latestCommand, List&lt;Command&gt; unprocessedCommands, Order order) {
+    if (order.getBaseVersion() != latestCommand.getExpectedVersion()) {
+      // Actual version doesn't match expected version
+      return false;
+    }
+    if (unprocessedCommands.size() &gt; 1) {
+      // Concurrent modification
+      return false;
+    }
+    return true;
+  }
+}
+</code></pre>
+<p>Also, set a Kafka producer property <code>max.in.flight.requests.per.connection=1</code> to make sure that
+while a batch of messages is retrying, additional messages will not be sent.</p>
+<p>It is possible that the broker will fail to write the first batch of messages, succeed to write the
+second, and then retry the first batch and succeed, thereby reversing the order.</p>
+<h5><a name="323effe18de24bcc666f161931c903f3"></a>Loading current state</h5>
+<p><strong>There is no need to do a remote call to fetch all events for an aggregate.</strong></p>
+<p><code>ORDER_AGGREGATES</code> table records and messages in its changelog topic <code>order-aggregates</code> contain all
+aggregate events and commands (<code>COLLECT_LIST(JSON_DATA)</code>).</p>
+<p>When a command, or an event is consumed from <code>order-aggregates</code> topic, the message already contains
+all aggregate events.</p>
+<p>However, it is also possible to fetch all events for an aggregate with ksqlDB SQL query</p>
+<pre><code class="language-sql">SELECT * FROM ORDER_AGGREGATES WHERE AGGREGATE_ID='${orderId}' AND IS_COMMAND=false;
+</code></pre>
+<h5><a name="784ff5dca3b046266edf61637822bbff"></a>Subscribe to all events by aggregate type</h5>
+<p><code>ORDER_AGGREGATES</code> table and in its changelog topic <code>order-aggregates</code> contain all aggregates of the
+same type.</p>
+<p>Consumers of <code>order-aggregates</code> topic receive all commands and events related to the same aggregate
+type.</p>
+<h5><a name="0b584912c4fa746206884e080303ed49"></a>Checkpoints</h5>
+<p>Consumer commits offset of the last message after processing it. Consumer will continue consuming
+messages from where it left off in the offset after a restart.</p>
+<h5><a name="0cfc0523189294ac086e11c8e286ba2d"></a>Drawbacks</h5>
+<ol>
+<li>Commands have to be persisted. It's easy to flood the system with invalid commands that will take
+a lot of space in the storage.</li>
+<li>Commands are processed asynchronously, so after submitting a command a result of processing can't
+be received synchronously. API should be designed with asynchrony in mind.</li>
+<li>Errors have to be modelled as events due to asynchronous command processing. A command resulting
+in error produces the <code>ErrorEvent</code> and increments the aggregate version.</li>
+<li>A command must generate one or more events (and never zero events). Otherwise, optimistic
+concurrency check implementation will work incorrectly.</li>
+<li>Adding event sourcing snapshotting is possible but will complicate the solution even more.</li>
+</ol>
+<h2><a name="56a081f86b7ec6a7d523c7e6d186f1a3"></a>Why ksqlDB?</h2>
+<p>It is possible to build event sourced systems with Kafka Streams, but I find ksqlDB simpler and more
+convenient solution for event sourcing because Kafka Streams has a few limitations:</p>
+<ul>
+<li>Kafka Streams is a library for JVM (Java, Scala etc.) and not a server.</li>
+<li>Kafka Streams DSL has steep learning curve compared to the SQL dialect of ksqlDB.</li>
+<li>The full state of an application is split across many distributed instances of the application.
+Kafka Streams allows an application to query its local state stores for the locally managed
+portion of the state. To query the full state, you must connect the various fragments of the state
+with and RPC<pre><code class="language-java">org.apache.kafka.streams.state.HostInfo hostInfo = 
+  interactiveQueryService.getHostInfo(&quot;store-name&quot;, key, keySerializer);
+if (interactiveQueryService.getCurrentHostInfo().equals(hostInfo)) {
+  //query from the store that is locally available
+} else {
+  //query from the remote host
+  RestTemplate restTemplate = new RestTemplate(); 
+  return restTemplate.postForObject(String.format(&quot;http://%s:%d/%s&quot;, hostInfo.host(), hostInfo.port(), &quot;endpoint&quot;), ...);
+}
+</code></pre>
+</li>
+</ul>
+<p>ksqlDB is actually uses Kafka Streams internally to provide higher level of abstraction. Thus,
+ksqlDB has the following advantages:</p>
+<ul>
+<li>ksqlDB is a standalone server.</li>
+<li>Can be run in a cluster.</li>
+<li>Supports SQL dialect for queries.</li>
+<li>Has CLI and HTTP/2 API. Thus, can be used with any programming language (HTTP API and CLI are
+disabled when ksqlDB is started in headless mode).</li>
+</ul>
+<h2><a name="53af957fc9dc9f7083531a00fe3f364e"></a>How to Run the Sample?</h2>
+<ol>
+<li>
+<p>Download &amp; installOpenJDK 11 (LTS) at <a href="https://adoptopenjdk.net/">AdoptOpenJDK</a>.</p>
+</li>
+<li>
+<p>Download and install <a href="https://docs.docker.com/engine/install/">Docker</a>
+and <a href="https://docs.docker.com/compose/install/">Docker Compose</a>.</p>
+</li>
+<li>
+<p>Build Java project and Docker image</p>
+<pre><code class="language-bash">./gradlew clean build jibDockerBuild -i
+</code></pre>
+</li>
+<li>
+<p>Run Kafka, ksqlDB and event-sourcing-app</p>
+<pre><code class="language-bash">docker-compose up -d --scale event-sourcing-app=2
+# wait a few minutes
+</code></pre>
+</li>
+<li>
+<p>Follow the logs of the application</p>
+<pre><code class="language-bash">docker-compose logs -f event-sourcing-app
+</code></pre>
+</li>
+<li>
+<p>Install <a href="https://curl.se/">curl</a> and <a href="https://stedolan.github.io/jq/">jq</a>.</p>
+</li>
+<li>
+<p>Run <a href="test.sh"><code>test.sh</code></a> script and see the output.</p>
+</li>
+</ol>
+<p>The <code>test.sh</code> script has the following instructions:</p>
+<ol>
+<li>Place new order.<pre><code class="language-bash">ORDER_ID=$(curl -s -X POST http://localhost:8080/orders/ -d '{&quot;riderId&quot;:&quot;63770803-38f4-4594-aec2-4c74918f7165&quot;,&quot;price&quot;:&quot;123.45&quot;,&quot;route&quot;:[{&quot;address&quot;:&quot;Київ, вулиця Полярна, 17А&quot;,&quot;lat&quot;:50.51980052414157,&quot;lon&quot;:30.467197278948536},{&quot;address&quot;:&quot;Київ, вулиця Новокостянтинівська, 18В&quot;,&quot;lat&quot;:50.48509161169076,&quot;lon&quot;:30.485170724431292}]}' -H 'Content-Type: application/json' | jq -r .orderId)
+sleep 1s
+</code></pre>
+</li>
+<li>Get the placed order.<pre><code class="language-bash">curl -s -X GET http://localhost:8080/orders/$ORDER_ID | jq
+</code></pre>
+<pre><code class="language-json">{
+  &quot;id&quot;: &quot;827e3a63-d252-415f-af60-94c5a36bfcd6&quot;,
+  &quot;version&quot;: 1,
+  &quot;status&quot;: &quot;PLACED&quot;,
+  &quot;riderId&quot;: &quot;63770803-38f4-4594-aec2-4c74918f7165&quot;,
+  &quot;price&quot;: 123.45,
+  &quot;route&quot;: [
+    {
+      &quot;address&quot;: &quot;Київ, вулиця Полярна, 17А&quot;,
+      &quot;lat&quot;: 50.51980052414157,
+      &quot;lon&quot;: 30.467197278948536
+    },
+    {
+      &quot;address&quot;: &quot;Київ, вулиця Новокостянтинівська, 18В&quot;,
+      &quot;lat&quot;: 50.48509161169076,
+      &quot;lon&quot;: 30.485170724431292
+    }
+  ],
+  &quot;placedDate&quot;: &quot;2021-04-23T15:26:22.543938Z&quot;,
+  &quot;errors&quot;: []
+}
+</code></pre>
+</li>
+<li>Accept the order. Try to cancel the order concurrently to simulate a write-write conflict.<pre><code class="language-bash">curl -s -X PATCH http://localhost:8080/orders/$ORDER_ID -d '{&quot;status&quot;:&quot;ACCEPTED&quot;,&quot;driverId&quot;:&quot;2c068a1a-9263-433f-a70b-067d51b98378&quot;,&quot;version&quot;:1}' -H 'Content-Type: application/json'
+curl -s -X PATCH http://localhost:8080/orders/$ORDER_ID -d '{&quot;status&quot;:&quot;CANCELLED&quot;,&quot;version&quot;:1}' -H 'Content-Type: application/json'
+sleep 1s
+</code></pre>
+</li>
+<li>Get the accepted order with optimistic concurrency control error.<pre><code class="language-bash">curl -s -X GET http://localhost:8080/orders/$ORDER_ID | jq
+</code></pre>
+<pre><code class="language-json">{
+  &quot;id&quot;: &quot;827e3a63-d252-415f-af60-94c5a36bfcd6&quot;,
+  &quot;version&quot;: 2,
+  &quot;status&quot;: &quot;ACCEPTED&quot;,
+  &quot;riderId&quot;: &quot;63770803-38f4-4594-aec2-4c74918f7165&quot;,
+  &quot;price&quot;: 123.45,
+  &quot;route&quot;: [
+    {
+      &quot;address&quot;: &quot;Київ, вулиця Полярна, 17А&quot;,
+      &quot;lat&quot;: 50.51980052414157,
+      &quot;lon&quot;: 30.467197278948536
+    },
+    {
+      &quot;address&quot;: &quot;Київ, вулиця Новокостянтинівська, 18В&quot;,
+      &quot;lat&quot;: 50.48509161169076,
+      &quot;lon&quot;: 30.485170724431292
+    }
+  ],
+  &quot;driverId&quot;: &quot;2c068a1a-9263-433f-a70b-067d51b98378&quot;,
+  &quot;placedDate&quot;: &quot;2021-04-23T15:26:22.543938Z&quot;,
+  &quot;acceptedDate&quot;: &quot;2021-04-23T15:26:23.542921Z&quot;,
+  &quot;errors&quot;: [
+    {
+      &quot;command&quot;: &quot;CancelOrderCommand&quot;,
+      &quot;expectedVersion&quot;: 1,
+      &quot;message&quot;: &quot;Concurrent modification&quot;
+    }
+  ]
+}
+</code></pre>
+</li>
+<li>Try to cancel an outdated version of the order to simulate lost update.<pre><code class="language-bash">curl -s -X PATCH http://localhost:8080/orders/$ORDER_ID -d '{&quot;status&quot;:&quot;CANCELLED&quot;,&quot;version&quot;:1}' -H 'Content-Type: application/json'
+sleep 1s
+</code></pre>
+</li>
+<li>Get the accepted order with optimistic concurrency control error.<pre><code class="language-bash">curl -s -X GET http://localhost:8080/orders/$ORDER_ID | jq
+</code></pre>
+<pre><code class="language-json">{
+  &quot;id&quot;: &quot;827e3a63-d252-415f-af60-94c5a36bfcd6&quot;,
+  &quot;version&quot;: 2,
+  &quot;status&quot;: &quot;ACCEPTED&quot;,
+  &quot;riderId&quot;: &quot;63770803-38f4-4594-aec2-4c74918f7165&quot;,
+  &quot;price&quot;: 123.45,
+  &quot;route&quot;: [
+    {
+      &quot;address&quot;: &quot;Київ, вулиця Полярна, 17А&quot;,
+      &quot;lat&quot;: 50.51980052414157,
+      &quot;lon&quot;: 30.467197278948536
+    },
+    {
+      &quot;address&quot;: &quot;Київ, вулиця Новокостянтинівська, 18В&quot;,
+      &quot;lat&quot;: 50.48509161169076,
+      &quot;lon&quot;: 30.485170724431292
+    }
+  ],
+  &quot;driverId&quot;: &quot;2c068a1a-9263-433f-a70b-067d51b98378&quot;,
+  &quot;placedDate&quot;: &quot;2021-04-23T15:26:22.543938Z&quot;,
+  &quot;acceptedDate&quot;: &quot;2021-04-23T15:26:23.542921Z&quot;,
+  &quot;errors&quot;: [
+    {
+      &quot;command&quot;: &quot;CancelOrderCommand&quot;,
+      &quot;expectedVersion&quot;: 1,
+      &quot;message&quot;: &quot;Concurrent modification&quot;
+    },
+    {
+      &quot;command&quot;: &quot;CancelOrderCommand&quot;,
+      &quot;expectedVersion&quot;: 1,
+      &quot;message&quot;: &quot;Actual version 2 doesn't match expected version 1&quot;
+    }
+  ]
+}
+</code></pre>
+</li>
+<li>Try to cancel a version of the order 'from the future' to simulate unordering.<pre><code class="language-bash">curl -s -X PATCH http://localhost:8080/orders/$ORDER_ID -d '{&quot;status&quot;:&quot;CANCELLED&quot;,&quot;version&quot;:3}' -H 'Content-Type: application/json'
+sleep 1s
+</code></pre>
+</li>
+<li>Get the accepted order with optimistic concurrency control error.<pre><code class="language-bash">curl -s -X GET http://localhost:8080/orders/$ORDER_ID | jq
+</code></pre>
+<pre><code class="language-json">{
+  &quot;id&quot;: &quot;827e3a63-d252-415f-af60-94c5a36bfcd6&quot;,
+  &quot;version&quot;: 2,
+  &quot;status&quot;: &quot;ACCEPTED&quot;,
+  &quot;riderId&quot;: &quot;63770803-38f4-4594-aec2-4c74918f7165&quot;,
+  &quot;price&quot;: 123.45,
+  &quot;route&quot;: [
+    {
+      &quot;address&quot;: &quot;Київ, вулиця Полярна, 17А&quot;,
+      &quot;lat&quot;: 50.51980052414157,
+      &quot;lon&quot;: 30.467197278948536
+    },
+    {
+      &quot;address&quot;: &quot;Київ, вулиця Новокостянтинівська, 18В&quot;,
+      &quot;lat&quot;: 50.48509161169076,
+      &quot;lon&quot;: 30.485170724431292
+    }
+  ],
+  &quot;driverId&quot;: &quot;2c068a1a-9263-433f-a70b-067d51b98378&quot;,
+  &quot;placedDate&quot;: &quot;2021-04-23T15:26:22.543938Z&quot;,
+  &quot;acceptedDate&quot;: &quot;2021-04-23T15:26:23.542921Z&quot;,
+  &quot;errors&quot;: [
+    {
+      &quot;command&quot;: &quot;CancelOrderCommand&quot;,
+      &quot;expectedVersion&quot;: 1,
+      &quot;message&quot;: &quot;Concurrent modification&quot;
+    },
+    {
+      &quot;command&quot;: &quot;CancelOrderCommand&quot;,
+      &quot;expectedVersion&quot;: 1,
+      &quot;message&quot;: &quot;Actual version 2 doesn't match expected version 1&quot;
+    },
+    {
+      &quot;command&quot;: &quot;CancelOrderCommand&quot;,
+      &quot;expectedVersion&quot;: 3,
+      &quot;message&quot;: &quot;Actual version 2 doesn't match expected version 3&quot;
+    }
+  ]
+}
+</code></pre>
+</li>
+<li>Complete the order.<pre><code class="language-bash">curl -s -X PATCH http://localhost:8080/orders/$ORDER_ID -d '{&quot;status&quot;:&quot;COMPLETED&quot;,&quot;version&quot;:2}' -H 'Content-Type: application/json'
+sleep 1s
+</code></pre>
+</li>
+<li>Get the completed order.<pre><code class="language-bash">curl -s -X GET http://localhost:8080/orders/$ORDER_ID | jq
+</code></pre>
+<pre><code class="language-json">{
+  &quot;id&quot;: &quot;827e3a63-d252-415f-af60-94c5a36bfcd6&quot;,
+  &quot;version&quot;: 3,
+  &quot;status&quot;: &quot;COMPLETED&quot;,
+  &quot;riderId&quot;: &quot;63770803-38f4-4594-aec2-4c74918f7165&quot;,
+  &quot;price&quot;: 123.45,
+  &quot;route&quot;: [
+    {
+      &quot;address&quot;: &quot;Київ, вулиця Полярна, 17А&quot;,
+      &quot;lat&quot;: 50.51980052414157,
+      &quot;lon&quot;: 30.467197278948536
+    },
+    {
+      &quot;address&quot;: &quot;Київ, вулиця Новокостянтинівська, 18В&quot;,
+      &quot;lat&quot;: 50.48509161169076,
+      &quot;lon&quot;: 30.485170724431292
+    }
+  ],
+  &quot;driverId&quot;: &quot;2c068a1a-9263-433f-a70b-067d51b98378&quot;,
+  &quot;placedDate&quot;: &quot;2021-04-23T15:26:22.543938Z&quot;,
+  &quot;acceptedDate&quot;: &quot;2021-04-23T15:26:23.542921Z&quot;,
+  &quot;completedDate&quot;: &quot;2021-04-23T15:26:26.791512Z&quot;,
+  &quot;errors&quot;: [
+    {
+      &quot;command&quot;: &quot;CancelOrderCommand&quot;,
+      &quot;expectedVersion&quot;: 1,
+      &quot;message&quot;: &quot;Concurrent modification&quot;
+    },
+    {
+      &quot;command&quot;: &quot;CancelOrderCommand&quot;,
+      &quot;expectedVersion&quot;: 1,
+      &quot;message&quot;: &quot;Actual version 2 doesn't match expected version 1&quot;
+    },
+    {
+      &quot;command&quot;: &quot;CancelOrderCommand&quot;,
+      &quot;expectedVersion&quot;: 3,
+      &quot;message&quot;: &quot;Actual version 2 doesn't match expected version 3&quot;
+    }
+  ]
+}
+</code></pre>
+</li>
+<li>Try to cancel a completed order to simulate business rule violation.<pre><code class="language-bash">curl -s -X PATCH http://localhost:8080/orders/$ORDER_ID -d '{&quot;status&quot;:&quot;CANCELLED&quot;,&quot;version&quot;:3}' -H 'Content-Type: application/json'
+sleep 1s
+</code></pre>
+</li>
+<li>Get the completed order with business rule validation error.<pre><code class="language-bash">curl -s -X GET http://localhost:8080/orders/$ORDER_ID | jq
+</code></pre>
+<pre><code class="language-json">{
+  &quot;id&quot;: &quot;827e3a63-d252-415f-af60-94c5a36bfcd6&quot;,
+  &quot;version&quot;: 3,
+  &quot;status&quot;: &quot;COMPLETED&quot;,
+  &quot;riderId&quot;: &quot;63770803-38f4-4594-aec2-4c74918f7165&quot;,
+  &quot;price&quot;: 123.45,
+  &quot;route&quot;: [
+    {
+      &quot;address&quot;: &quot;Київ, вулиця Полярна, 17А&quot;,
+      &quot;lat&quot;: 50.51980052414157,
+      &quot;lon&quot;: 30.467197278948536
+    },
+    {
+      &quot;address&quot;: &quot;Київ, вулиця Новокостянтинівська, 18В&quot;,
+      &quot;lat&quot;: 50.48509161169076,
+      &quot;lon&quot;: 30.485170724431292
+    }
+  ],
+  &quot;driverId&quot;: &quot;2c068a1a-9263-433f-a70b-067d51b98378&quot;,
+  &quot;placedDate&quot;: &quot;2021-04-23T15:26:22.543938Z&quot;,
+  &quot;acceptedDate&quot;: &quot;2021-04-23T15:26:23.542921Z&quot;,
+  &quot;completedDate&quot;: &quot;2021-04-23T15:26:26.791512Z&quot;,
+  &quot;errors&quot;: [
+    {
+      &quot;command&quot;: &quot;CancelOrderCommand&quot;,
+      &quot;expectedVersion&quot;: 1,
+      &quot;message&quot;: &quot;Concurrent modification&quot;
+    },
+    {
+      &quot;command&quot;: &quot;CancelOrderCommand&quot;,
+      &quot;expectedVersion&quot;: 1,
+      &quot;message&quot;: &quot;Actual version 2 doesn't match expected version 1&quot;
+    },
+    {
+      &quot;command&quot;: &quot;CancelOrderCommand&quot;,
+      &quot;expectedVersion&quot;: 3,
+      &quot;message&quot;: &quot;Actual version 2 doesn't match expected version 3&quot;
+    },
+    {
+      &quot;command&quot;: &quot;CancelOrderCommand&quot;,
+      &quot;expectedVersion&quot;: 3,
+      &quot;message&quot;: &quot;Order in status COMPLETED can't be cancelled&quot;
+    }
+  ]
+}
+</code></pre>
+</li>
+<li>Print integration events.<pre><code class="language-bash">docker exec -it kafka /bin/kafka-console-consumer --bootstrap-server localhost:9092 --topic order-integration-events --from-beginning --property print.key=true --timeout-ms 3000
+</code></pre>
+<pre><code>827e3a63-d252-415f-af60-94c5a36bfcd6	{&quot;order_id&quot;:&quot;827e3a63-d252-415f-af60-94c5a36bfcd6&quot;,&quot;event_type&quot;:&quot;OrderPlacedEvent&quot;,&quot;event_timestamp&quot;:1619191582543,&quot;version&quot;:1,&quot;status&quot;:&quot;PLACED&quot;,&quot;rider_id&quot;:&quot;63770803-38f4-4594-aec2-4c74918f7165&quot;,&quot;price&quot;:123.45,&quot;route&quot;:[{&quot;ADDRESS&quot;:&quot;Київ, вулиця Полярна, 17А&quot;,&quot;LAT&quot;:50.51980052414157,&quot;LON&quot;:30.467197278948536},{&quot;ADDRESS&quot;:&quot;Київ, вулиця Новокостянтинівська, 18В&quot;,&quot;LAT&quot;:50.48509161169076,&quot;LON&quot;:30.485170724431292}]}
+827e3a63-d252-415f-af60-94c5a36bfcd6	{&quot;order_id&quot;:&quot;827e3a63-d252-415f-af60-94c5a36bfcd6&quot;,&quot;event_type&quot;:&quot;OrderAcceptedEvent&quot;,&quot;event_timestamp&quot;:1619191583542,&quot;version&quot;:2,&quot;status&quot;:&quot;ACCEPTED&quot;,&quot;rider_id&quot;:&quot;63770803-38f4-4594-aec2-4c74918f7165&quot;,&quot;price&quot;:123.45,&quot;route&quot;:[{&quot;ADDRESS&quot;:&quot;Київ, вулиця Полярна, 17А&quot;,&quot;LAT&quot;:50.51980052414157,&quot;LON&quot;:30.467197278948536},{&quot;ADDRESS&quot;:&quot;Київ, вулиця Новокостянтинівська, 18В&quot;,&quot;LAT&quot;:50.48509161169076,&quot;LON&quot;:30.485170724431292}],&quot;driver_id&quot;:&quot;2c068a1a-9263-433f-a70b-067d51b98378&quot;}
+827e3a63-d252-415f-af60-94c5a36bfcd6	{&quot;order_id&quot;:&quot;827e3a63-d252-415f-af60-94c5a36bfcd6&quot;,&quot;event_type&quot;:&quot;OrderCompletedEvent&quot;,&quot;event_timestamp&quot;:1619191586791,&quot;version&quot;:3,&quot;status&quot;:&quot;COMPLETED&quot;,&quot;rider_id&quot;:&quot;63770803-38f4-4594-aec2-4c74918f7165&quot;,&quot;price&quot;:123.45,&quot;route&quot;:[{&quot;ADDRESS&quot;:&quot;Київ, вулиця Полярна, 17А&quot;,&quot;LAT&quot;:50.51980052414157,&quot;LON&quot;:30.467197278948536},{&quot;ADDRESS&quot;:&quot;Київ, вулиця Новокостянтинівська, 18В&quot;,&quot;LAT&quot;:50.48509161169076,&quot;LON&quot;:30.485170724431292}],&quot;driver_id&quot;:&quot;2c068a1a-9263-433f-a70b-067d51b98378&quot;}
+</code></pre>
+</li>
+</ol>
+
+</div>
+    </div>
+  </section>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.20.0/components/prism-core.min.js" integrity="sha256-9h14mWYYiQGkeAKg2JtijbqApb56kgw57WN6sI6dwH0=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.20.0/plugins/autoloader/prism-autoloader.min.js" integrity="sha256-3S2PESHNt0YNL65z57WuHPHIv12fibpBDXepyCGHftw=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.20.0/plugins/custom-class/prism-custom-class.min.js" integrity="sha256-ubEwa1bEadlhCRqEVg7rO3VRU5gzqHAEE7pLAggldc8=" crossorigin="anonymous"></script>
+  <script>
+    Prism.plugins.customClass.prefix('prism-');
+  </script>
+</body>
+
+</html>

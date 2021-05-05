@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Spring Kafka Non-Blocking Retries and Dead Letter Topics</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css" />
+  <link rel="stylesheet" href="/css/prism.min.css" />
+
+  <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
+  <script async defer src="https://buttons.github.io/buttons.js"></script>
+  <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+    integrity="sha256-pasqAKBDmFT4eHoN2ndd6lN370kFiGUFyTiUHWhU7k8=" crossorigin="anonymous"></script>
+    
+  <script>
+    $(document).ready(function () {
+      $(".navbar-burger").click(function () {
+        $(".navbar-burger").toggleClass("is-active");
+        $(".navbar-menu").toggleClass("is-active");
+      });
+    });
+  </script>
+</head>
+
+<body>
+  <nav class="navbar is-light" role="navigation" aria-label="main navigation">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://github.com/evgeniy-khist" target="_blank">
+        <span class="tag is-link is-medium">
+          <span class="icon">
+            <i class="fab fa-github"></i>
+          </span>
+          <span> evgeniy-khist</span>
+        </span>
+      </a>
+
+      <a role="button" class="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="navMenu">
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+      </a>
+    </div>
+
+    <div id="navMenu" class="navbar-menu">
+      <div class="navbar-start">
+        <a class="navbar-item" href="/">
+          Home
+        </a>
+
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link">
+            Projects
+          </a>
+
+          <div class="navbar-dropdown">
+              <a class="navbar-item" href="/spring-data-examples/">
+                Spring Data JPA pitfalls and modern alternatives: Spring Data JDBC and Spring Data R2DBC
+              </a>
+              <a class="navbar-item" href="/postgresql-performance-essentials/">
+                PostgreSQL Performance Essentials in 1 Hour
+              </a>
+              <a class="navbar-item" href="/eventstoredb-event-sourcing/">
+                Event Sourcing with EventStoreDB
+              </a>
+              <a class="navbar-item" href="/postgresql-event-sourcing/">
+                Event Sourcing with PostgreSQL
+              </a>
+              <a class="navbar-item" href="/ksqldb-event-souring/">
+                Event Sourcing with Kafka and ksqlDB
+              </a>
+              <a class="navbar-item" href="/spring-kafka-non-blocking-retries-and-dlt/">
+                Spring Kafka Non-Blocking Retries and Dead Letter Topics
+              </a>
+              <a class="navbar-item" href="/geohash-example/">
+                Rents Map - Geohash Example
+              </a>
+              <a class="navbar-item" href="/pairwise-comparison/">
+                Pairwise Comparison Method
+              </a>
+              <a class="navbar-item" href="/letsencrypt-docker-compose/">
+                Nginx and Let’s Encrypt with Docker Compose in less than 3 minutes
+              </a>
+          </div>
+        </div>
+      </div>
+
+      <div class="navbar-end">
+        <div class="navbar-item">
+          <a class="github-button" href="https://github.com/evgeniy-khist" data-size="large" data-show-count="true"
+            aria-label="Follow @evgeniy-khist on GitHub">Follow @evgeniy-khist</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <section class="hero is-light">
+    <div class="hero-body">
+      <div class="container">
+        <h1 class="title">
+          Evgeniy Khyst's Tech Blog
+        </h1>
+        <h2 class="subtitle">
+          Samples and articles
+        </h2>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+<div class="columns">
+  <div class="column">
+    <a class="github-button" href="https://github.com/evgeniy-khist/spring-kafka-non-blocking-retries-and-dlt" data-icon="octicon-star"
+      data-size="large" data-show-count="true" aria-label="Star evgeniy-khist/spring-kafka-non-blocking-retries-and-dlt on GitHub">Star</a>
+    <a class="github-button" href="https://github.com/evgeniy-khist/spring-kafka-non-blocking-retries-and-dlt/fork" data-icon="octicon-repo-forked"
+      data-size="large" data-show-count="true" aria-label="Fork evgeniy-khist/spring-kafka-non-blocking-retries-and-dlt on GitHub">Fork</a>
+  </div>
+  <div class="column has-text-right has-text-grey">
+    <time datetime="2021-05-03">3 May 2021</time>
+  </div>
+</div>
+
+<div class="content">
+<h1>Spring Kafka Non-Blocking Retries and Dead Letter Topics</h1>
+<ul>
+<li><a href="#0b79795d3efc95b9976c7c5b933afce2">Introduction</a></li>
+<li><a href="#6fd65dea9dbf381660d8d2d9d6ec86b7">Simple Blocking Retries</a></li>
+<li><a href="#c6e2fbe6911aecebfba6dbcb786408eb">Non-Blocking Retries and Dead Letter Topics</a>
+<ul>
+<li><a href="#f7b2ceb71d1db781418644d81e747782">Advantages</a></li>
+<li><a href="#90843c066e7c75581a9005b9579c151d">Disadvantages</a></li>
+</ul>
+</li>
+<li><a href="#10dc1e1086f0a4cb592bdd2602fbb311">How to Properly Implement a Back Off Delay?</a></li>
+<li><a href="#c02cd12315c42e2e126b7b3693fe7f25">Recoverable vs Non-Recoverable Errors</a></li>
+<li><a href="#217c291a5e1269cdf1dc29e841471115">Topic Naming for Multiple Consumer Groups</a></li>
+<li><a href="#7a84b9ef94c90d8886f0216d9da2e66f">Non-Blocking Retries in Spring Kafka</a></li>
+<li><a href="#53af957fc9dc9f7083531a00fe3f364e">How to Run the Sample?</a></li>
+</ul>
+<h2><a name="0b79795d3efc95b9976c7c5b933afce2"></a>Introduction</h2>
+<p>This repository provides a sample of non-blocking retries and dead letter topics
+(aka <a href="https://eng.uber.com/reliable-reprocessing/">reliable reprocessing and dead letter queues</a>)
+with Apache Kafka. The sample is implemented using Spring Boot and Spring Kafka.</p>
+<h2><a name="6fd65dea9dbf381660d8d2d9d6ec86b7"></a>Simple Blocking Retries</h2>
+<p>A reliable distributed system can hardly be built without reprocessing failed messages.</p>
+<p>Kafka doesn't provide retry and dead letter topic functionality out of the box.</p>
+<p>Retries can be quickly and simply implemented at the consumer side. The consumer thread is
+suspended (according to a backoff policy), and the failed message is reprocessed without doing calls
+to <code>Consumer.poll()</code> during the retries.</p>
+<p><img src="img/kafka-blocking-retries.png" alt="Kafka blocking retires"></p>
+<p>Retrying at the client side has the following disadvantages</p>
+<ul>
+<li>Blocked batch processing. When we need to process a large number of messages in real time,
+repeatedly failed messages can block batch processing. Messages consistently exceeding the retry
+limit take the longest time to process and use the most resources. Without a success response, the
+Kafka consumer will not commit a new offset and the batches with these bad messages would be
+blocked, as they are re-consumed again and again.</li>
+<li>Difficulty retrieving metadata about retries. Retrieving metadata about retries such as timestamps
+and the number of retry can be difficult.</li>
+</ul>
+<h2><a name="c6e2fbe6911aecebfba6dbcb786408eb"></a>Non-Blocking Retries and Dead Letter Topics</h2>
+<p>Request reprocessing (retries) must be non-blocking (done in separate topics) and delayed:</p>
+<ul>
+<li>to not disrupt real-time traffic;</li>
+<li>to not amplify the number of calls, essentially spamming bad requests;</li>
+<li>for observability (to obtain metadata on the retries).</li>
+</ul>
+<p>Achieving non-blocking retry and DLT functionality with Kafka usually requires setting up extra
+topics and creating and configuring the corresponding listeners.</p>
+<p><img src="img/kafka-non-blocking-retries-1.png" alt="Kafka non-blocking retires"></p>
+<p>Errors trickle down levels of retry topics until landing in the DLT:</p>
+<ul>
+<li>If message processing fails, the message is forwarded to a retry topic with a back off timestamp.</li>
+<li>The retry topic consumer then checks the timestamp and if it's not due it pauses the consumption
+for that topic's partition.</li>
+<li>When it is due the partition consumption is resumed, and the message is consumed again.</li>
+<li>If the message processing fails again the message will be forwarded to the next retry topic, and
+the pattern is repeated until a successful processing occurs, or the attempts are exhausted,</li>
+<li>If all retry attempts are exhausted the message is sent to the Dead Letter Topic for visibility
+and diagnosis.</li>
+<li>Dead letter Topic messages can be reprocessed by being published back into the first retry topic.
+This way, they have no influence of the live traffic.</li>
+</ul>
+<p><img src="img/kafka-non-blocking-retries-2.png" alt="Kafka non-blocking retires"></p>
+<p>It is important not to simply re-attempt failed requests immediately one after the other. Doing so
+will amplify the number of calls, essentially spamming bad requests.</p>
+<h3><a name="f7b2ceb71d1db781418644d81e747782"></a>Advantages</h3>
+<p>Unblocked batch processing. Failed messages enter their own designated channels, enabling successes
+in the same batch to proceed instead of requiring them to be reprocessed along with the failures.
+Thus, consumption of incoming requests moves forward unblocked, achieving higher real-time
+throughput.</p>
+<h3><a name="90843c066e7c75581a9005b9579c151d"></a>Disadvantages</h3>
+<p>By using non-blocking retries you lose Kafka's ordering guarantees for that topic.</p>
+<h2><a name="10dc1e1086f0a4cb592bdd2602fbb311"></a>How to Properly Implement a Back Off Delay?</h2>
+<p>A naive solution (<em>not working!</em>) for implementing a back off delay (delayed message processing) is
+by sleeping the consumer thread till due time (time the message was published to the topic + delay
+time).</p>
+<p>This approach doesn't work because you cannot sleep the consumer thread as Kafka will assume that it
+is dead and will perform partition reassignment and pass that message to other consumers.</p>
+<p>Kafka has two properties to determine consumer health. The <code>session.timeout.ms</code> is used to determine
+if the consumer is active. Since kafka-clients version 0.10.1.0, heartbeats are sent on a background
+thread, so a slow consumer no longer affects that. <code>max.poll.interval.ms</code> (default: 5 minutes) is
+used to determine if a consumer appears to be hung (taking too long to process records from the last
+poll). If the time between <code>poll()</code> calls exceeds this, the broker revokes the assigned partitions
+and performs a rebalance. For lengthy retry sequences, with back off, this can easily happen.</p>
+<p>A Kafka consumer must be paused and resumed instead of sleeping the thread.</p>
+<p>The delayed topic consumer must check the timestamp, and if it's not due, pause the consumption
+without committing the offset for that topic's partition. When it is due, the partition consumption
+is resumed, and the message is consumed again.</p>
+<p>Delay precision is guaranteed on a best-effort basis. If one message's processing takes longer than
+the next message's back off period for that consumer, the next message's delay will be higher than
+expected. But it is guaranteed that a message will never be processed before its due time.</p>
+<h2><a name="c02cd12315c42e2e126b7b3693fe7f25"></a>Recoverable vs Non-Recoverable Errors</h2>
+<p>We can also differentiate treatment of different types of errors, allowing cases such as network
+errors to be re-attempted, while null pointer exceptions and other code bugs should go straight into
+the DLT because retries would not fix them.</p>
+<h2><a name="217c291a5e1269cdf1dc29e841471115"></a>Topic Naming for Multiple Consumer Groups</h2>
+<p>If there are more than one consumer group, retry and DLT topics names have to include the consumer
+group ID, e.g. <code>orders-myConsumerGroup1-retry-0</code>.</p>
+<p>Such naming is required because there can be multiple applications consuming from the same topics
+with different consumer group IDs, and reprocessing of failed messages must be independent for
+different consumer groups.</p>
+<p>For example, application A have processed a message successfully, while application B failed to
+process the same message. This message must be reprocessed only by application A. Application B must
+not consume this message from the retry topic because it has already successfully processed it.</p>
+<h2><a name="7a84b9ef94c90d8886f0216d9da2e66f"></a>Non-Blocking Retries in Spring Kafka</h2>
+<p>Since Spring Kafka 2.7.0 failed deliveries can be forwarded to a series of topics for delayed
+redelivery.</p>
+<p>It can described with an example:</p>
+<pre><code class="language-java">public class RetryableKafkaListener {
+
+  @RetryableTopic(
+      attempts = &quot;4&quot;,
+      backoff = @Backoff(delay = 1000, multiplier = 2.0),
+      autoCreateTopics = &quot;false&quot;,
+      topicSuffixingStrategy = TopicSuffixingStrategy.SUFFIX_WITH_INDEX_VALUE)
+  @KafkaListener(topics = &quot;orders&quot;)
+  public void listen(String in, @Header(KafkaHeaders.RECEIVED_TOPIC) String topic) {
+    log.info(in + &quot; from &quot; + topic);
+    throw new RuntimeException(&quot;test&quot;);
+  }
+
+  @DltHandler
+  public void dlt(String in, @Header(KafkaHeaders.RECEIVED_TOPIC) String topic) {
+    log.info(in + &quot; from &quot; + topic);
+  }
+}
+</code></pre>
+<p>With this <code>@RetryableTopic</code> configuration, the first delivery attempt fails and the record is sent
+to a topic <code>order-retry-0</code> configured for a 1-second delay. When that delivery fails, the record is
+sent to a topic <code>order-retry-1</code> with a 2-second delay. When that delivery fails, it goes to a
+topic <code>order-retry-2</code> with a 4-second delay, and, finally, to a dead letter topic <code>orders-dlt</code>
+handled by <code>@DltHandler</code> method.</p>
+<p>The first attempt counts against the <code>maxAttempts</code>, so if you provide a <code>maxAttempts</code> value of 4
+there'll be the original attempt plus 3 retries.</p>
+<p>Non-blocking retries allow processing of subsequent records from the same partition while retrying
+the failed record.</p>
+<h2><a name="53af957fc9dc9f7083531a00fe3f364e"></a>How to Run the Sample?</h2>
+<ol>
+<li>Download &amp; install OpenJDK 11 (LTS) at <a href="https://adoptopenjdk.net/">AdoptOpenJDK</a>.</li>
+<li>Build the sample and run all tests<pre><code class="language-bash">./gradlew clean test -i
+</code></pre>
+By default, embedded Kafka broker is started at port <code>19092</code>. You can set a port for the embedded
+Kafka broker using <code>kafka.embedded.port</code> property<pre><code class="language-bash">./gradlew clean test -i -Dkafka.embedded.port=29092
+</code></pre>
+</li>
+</ol>
+
+</div>
+    </div>
+  </section>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.20.0/components/prism-core.min.js" integrity="sha256-9h14mWYYiQGkeAKg2JtijbqApb56kgw57WN6sI6dwH0=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.20.0/plugins/autoloader/prism-autoloader.min.js" integrity="sha256-3S2PESHNt0YNL65z57WuHPHIv12fibpBDXepyCGHftw=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.20.0/plugins/custom-class/prism-custom-class.min.js" integrity="sha256-ubEwa1bEadlhCRqEVg7rO3VRU5gzqHAEE7pLAggldc8=" crossorigin="anonymous"></script>
+  <script>
+    Prism.plugins.customClass.prefix('prism-');
+  </script>
+</body>
+
+</html>

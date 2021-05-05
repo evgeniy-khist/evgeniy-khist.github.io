@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ $# -eq 0 ]; then
-  projects=(spring-data-examples postgresql-performance-essentials geohash-example pairwise-comparison letsencrypt-docker-compose)
+  projects=(spring-data-examples postgresql-performance-essentials eventstoredb-event-sourcing postgresql-event-sourcing ksqldb-event-souring spring-kafka-non-blocking-retries-and-dlt geohash-example pairwise-comparison letsencrypt-docker-compose)
 else
   projects=($*)
 fi
